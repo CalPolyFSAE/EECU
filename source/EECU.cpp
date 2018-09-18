@@ -29,7 +29,7 @@
  */
  
 /**
- * @file    EECU.c
+ * @file    EECU.cpp
  * @brief   Application entry point.
  */
 #include <stdio.h>
