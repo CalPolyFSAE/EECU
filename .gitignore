@@ -1,0 +1,6 @@
+*.mex
+*.launch
+**/Debug
+**/Release
+
+*.swp
