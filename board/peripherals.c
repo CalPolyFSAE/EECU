@@ -1,11 +1,9 @@
 /*
- * The Clear BSD License
  * Copyright 2017-2018 NXP
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification,
- * are permitted (subject to the limitations in the disclaimer below) provided
- *  that the following conditions are met:
+ * are permitted provided that the following conditions are met:
  *
  * o Redistributions of source code must retain the above copyright notice, this list
  *   of conditions and the following disclaimer.
@@ -14,11 +12,10 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of the copyright holder nor the names of its
+ * o Neither the name of NXP Semiconductor, Inc. nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
- * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS LICENSE.
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -34,16 +31,20 @@
 /* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 !!GlobalInfo
 product: Peripherals v1.0
- * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+* BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 
-/*******************************************************************************
- * Included files
- ******************************************************************************/
+/**
+ * @file    peripherals.c
+ * @brief   Peripherals initialization file.
+ */
+ 
+/* This is a template for board specific configuration created by MCUXpresso IDE Project Wizard.*/
+
 #include "peripherals.h"
 
-/*******************************************************************************
- * BOARD_InitBootPeripherals function
- ******************************************************************************/
-void BOARD_InitBootPeripherals(void)
-{
+/**
+ * @brief Set up and initialize all required blocks and functions related to the peripherals hardware.
+ */
+void BOARD_InitBootPeripherals(void) {
+	/* The user initialization should be placed here */
 }

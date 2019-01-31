@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 NXP Semiconductor, Inc.
+ * Copyright 2016-2018 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -29,7 +29,7 @@
  */
  
 /**
- * @file    EECU.cpp
+ * @file    VCU.cpp
  * @brief   Application entry point.
  */
 #include <stdio.h>
@@ -38,7 +38,6 @@
 #include "pin_mux.h"
 #include "clock_config.h"
 #include "MKE18F16.h"
-#include "fsl_debug_console.h"
 /* TODO: insert other include files here. */
 
 /* TODO: insert other definitions and declarations here. */
@@ -47,15 +46,12 @@
  * @brief   Application entry point.
  */
 int main(void) {
-
   	/* Init board hardware. */
     BOARD_InitBootPins();
     BOARD_InitBootClocks();
     BOARD_InitBootPeripherals();
-  	/* Init FSL debug console. */
-    BOARD_InitDebugConsole();
 
-    PRINTF("Hello World\n");
+    printf("Hello World\n");
 
     /* Force the counter to be placed into memory. */
     volatile static int i = 0 ;

@@ -1,6 +1,4 @@
-*.mex
+*.swp
 *.launch
 **/Debug
 **/Release
-
-*.swp
