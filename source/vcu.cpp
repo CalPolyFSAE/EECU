@@ -15,9 +15,9 @@ VCU::VCU() {
 
 void VCU::shutdown_loop() {
 	if(VCU::flag == true)
-		return;
+		VCU::flag = false;
 	else
-		VCU::flag = true;
+		return;
 
 	switch(VCU::state) {
 	case AIR_OFF:

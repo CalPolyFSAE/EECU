@@ -41,7 +41,7 @@ int main(void) {
 
     while(1) {
     	if(vcu.flag == true) {
-    		vcu.flag = false;
+    		vcu.shutdown_loop();
     		gpio.toggle(gpio::PortD, 16);
 
     	    channel_config.channelNumber = 8U;
@@ -82,6 +82,6 @@ int main(void) {
 
 extern "C" {
 	void SysTick_Handler() {
-		vcu.shutdown_loop();
+		vcu.flag = true;
 	}
 }

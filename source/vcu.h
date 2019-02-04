@@ -39,10 +39,10 @@ typedef enum STATE {
 class VCU {
 public:
 	volatile bool flag;
-	volatile timer_t timer;
-	volatile uint32_t input[INPUT_COUNT];
-	volatile uint32_t output[OUTPUT_COUNT];
-	volatile state_t state;
+	timer_t timer;
+	uint32_t input[INPUT_COUNT];
+	uint32_t output[OUTPUT_COUNT];
+	state_t state;
 
 	VCU();
 	void shutdown_loop();
