@@ -10,6 +10,8 @@
 
 using namespace BSP;
 
+#define TIMER_PERIOD 10000000
+
 VCU vcu;
 
 int main(void) {
@@ -24,6 +26,7 @@ int main(void) {
     adc::ADC::ConstructStatic(NULL);
     adc::ADC& adc = adc::ADC::StaticClass();
     adc.config_base(ADC0, NULL);
+    channel_config.enableInterruptOnConversionCompleted = false;
     if(adc.calibrate(ADC0) != kStatus_Success) assert(0);
 
     // initialize GPIO driver
@@ -37,13 +40,14 @@ int main(void) {
 	gpio.clear(gpio::PortC, 7);		// PRECHARGE_FAILED
 	gpio.set(gpio::PortD, 15);		// LED
 
-    SysTick_Config(10000000);
+    SysTick_Config(TIMER_PERIOD);
 
     while(1) {
     	if(vcu.flag == true) {
-    		vcu.shutdown_loop();
+    		// indicator LED
     		gpio.toggle(gpio::PortD, 16);
 
+    		// ADC input map
     	    channel_config.channelNumber = 8U;
     	    adc.config_channel(ADC0, 0, &channel_config);
     	    vcu.input[MC_VOLTAGE] = adc.read(ADC0, 0);
@@ -52,9 +56,14 @@ int main(void) {
     	    adc.config_channel(ADC0, 0, &channel_config);
     	    vcu.input[BMS_VOLTAGE] = adc.read(ADC0, 0);
 
+    	    // GPIO input map
     	    vcu.input[TSREADY] = gpio.read(gpio::PortE, 8);
     	    vcu.input[CHARGER_CONNECTED] = gpio.read(gpio::PortD, 5);
 
+    	    // run VCU shutdown loop
+    	    vcu.shutdown_loop();
+
+    	    // GPIO output map
     	    if(vcu.input[POS_AIR_ENABLE] == HIGH)
     	    	gpio.set(gpio::PortC, 16);
     	    else
