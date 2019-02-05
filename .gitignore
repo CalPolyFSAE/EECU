@@ -2,5 +2,3 @@
 *.launch
 **/Debug
 **/Release
-/.project
-/.cproject
