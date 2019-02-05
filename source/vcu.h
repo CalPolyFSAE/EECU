@@ -3,8 +3,8 @@
 
 #include <time.h>
 
-#define ALLOWED_PRECHARGE_TIME 4
-#define MC_CHARGE_TIME 1
+#define ALLOWED_PRECHARGE_TIME 40
+#define MC_CHARGE_TIME 10
 #define BATTERY_PERCENTAGE 90
 
 enum INPUT {
@@ -16,7 +16,8 @@ enum INPUT {
 };
 
 enum OUTPUT {
-	POS_AIR_ENABLE,
+	AIR_POS,
+	AIR_NEG,
 	ENABLE_COOLANT_PUMP,
 	DCDC_DISABLE,
 	PRECHARGE_FAILED,
@@ -39,7 +40,7 @@ typedef enum STATE {
 class VCU {
 public:
 	volatile bool flag;
-	timer_t timer;
+	uint32_t timer;
 	uint32_t input[INPUT_COUNT];
 	uint32_t output[OUTPUT_COUNT];
 	state_t state;

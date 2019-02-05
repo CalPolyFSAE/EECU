@@ -29,7 +29,7 @@
 		<link>
 			<name>lib</name>
 			<type>2</type>
-			<location>C:/Users/Ayusman/Documents/MCUXpresso/workspace/MKELibrary/lib</location>
+			<location>/home/asaha/Documents/MCUXpresso/workspace/MKELibrary/lib</location>
 		</link>
 	</linkedResources>
 </projectDescription>

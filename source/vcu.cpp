@@ -21,40 +21,46 @@ void VCU::shutdown_loop() {
 
 	switch(VCU::state) {
 	case AIR_OFF:
-		VCU::output[POS_AIR_ENABLE] = LOW;
+		VCU::output[AIR_POS] = LOW;
+		VCU::output[AIR_NEG] = LOW;
 		VCU::output[ENABLE_COOLANT_PUMP] = LOW;
 		VCU::output[DCDC_DISABLE] = HIGH;
 
-		if((VCU::input[TSREADY] == LOW) && (VCU::input[PRECHARGE_FAILED] == LOW)) {
+		if(input[TSREADY] == HIGH) {
 			VCU::state = PRECHARGE;
 			VCU::output[PRECHARGE_FAILED] = LOW;
-			VCU::timer = time(nullptr);
+			VCU::timer = 0;
 		}
 
 		break;
 
 	case PRECHARGE:
-		VCU::output[POS_AIR_ENABLE] = LOW;
+		VCU::output[AIR_POS] = LOW;
+		VCU::output[AIR_NEG] = HIGH;
 		VCU::output[ENABLE_COOLANT_PUMP] = LOW;
 		VCU::output[DCDC_DISABLE] = HIGH;
+		VCU::timer++;
 
-		if(((difftime(time(nullptr), VCU::timer) > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] < BATTERY_PERCENTAGE * VCU::input[BMS_VOLTAGE] / 100) && (VCU::input[CHARGER_CONNECTED] == LOW)) || (VCU::input[TSREADY] == HIGH)) {
+		if(((VCU::timer > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] < (BATTERY_PERCENTAGE * VCU::input[BMS_VOLTAGE] / 100)) && (VCU::input[CHARGER_CONNECTED] == LOW)) || (VCU::input[TSREADY] == LOW)) {
 			VCU::state = AIR_OFF;
 			VCU::output[PRECHARGE_FAILED] = HIGH;
-		} else if((((difftime(time(nullptr), VCU::timer) > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] > BATTERY_PERCENTAGE * VCU::input[BMS_VOLTAGE] / 100)) || (VCU::input[CHARGER_CONNECTED] == HIGH)) && (VCU::input[TSREADY] == HIGH)) {
+		} else if((((VCU::timer > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] > (BATTERY_PERCENTAGE * VCU::input[BMS_VOLTAGE] / 100))) || (VCU::input[CHARGER_CONNECTED] == HIGH)) && (VCU::input[TSREADY] == HIGH)) {
 			VCU::state = AIR_ON;
 		}
 
 		break;
 
 	case AIR_ON:
-		VCU::output[POS_AIR_ENABLE] = HIGH;
+		VCU::output[AIR_POS] = HIGH;
+		VCU::output[AIR_NEG] = HIGH;
 		VCU::output[ENABLE_COOLANT_PUMP] = LOW;
 		VCU::output[DCDC_DISABLE] = HIGH;
 
-		if((VCU::input[CHARGER_CONNECTED] == LOW) && (VCU::input[TSREADY]) == HIGH) {
+		if(VCU::input[TSREADY] == LOW) {
+			VCU::state = AIR_OFF;
+		} else if((VCU::input[CHARGER_CONNECTED] == LOW) && (VCU::input[TSREADY]) == HIGH) {
 			VCU::state = READY_TO_DRIVE;
-			VCU::timer = time(nullptr);
+			VCU::timer = 0;
 		} else if((VCU::input[CHARGER_CONNECTED] == HIGH) && (VCU::input[TSREADY] == HIGH)) {
 			VCU::state = READY_TO_CHARGE;
 		}
@@ -62,7 +68,8 @@ void VCU::shutdown_loop() {
 		break;
 
 	case READY_TO_CHARGE:
-		VCU::output[POS_AIR_ENABLE] = HIGH;
+		VCU::output[AIR_POS] = HIGH;
+		VCU::output[AIR_NEG] = HIGH;
 		VCU::output[ENABLE_COOLANT_PUMP] = LOW;
 		VCU::output[DCDC_DISABLE] = HIGH;
 
@@ -72,8 +79,9 @@ void VCU::shutdown_loop() {
 		break;
 
 	case READY_TO_DRIVE:
-		if(difftime(time(nullptr), VCU::timer) > MC_CHARGE_TIME) {
-			VCU::output[POS_AIR_ENABLE] = HIGH;
+		if(VCU::timer > MC_CHARGE_TIME) {
+			VCU::output[AIR_POS] = HIGH;
+			VCU::output[AIR_NEG] = HIGH;
 			VCU::output[ENABLE_COOLANT_PUMP] = HIGH;
 			VCU::output[DCDC_DISABLE] = LOW;
 		}

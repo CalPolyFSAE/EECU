@@ -10,7 +10,7 @@
 
 using namespace BSP;
 
-#define TIMER_PERIOD 10000000
+#define TIMER_PERIOD 3000000 	// 10Hz
 
 VCU vcu;
 
@@ -21,6 +21,7 @@ int main(void) {
     BOARD_InitBootPins();
     BOARD_InitBootClocks();
     BOARD_InitBootPeripherals();
+    BOARD_InitDebugConsole();
 
     // initialize ADC driver
     adc::ADC::ConstructStatic(NULL);
@@ -34,18 +35,33 @@ int main(void) {
     gpio::GPIO& gpio = gpio::GPIO::StaticClass();
     gpio.in_dir(gpio::PortE, 8);	// TSREADY
     gpio.in_dir(gpio::PortD, 5);	// CHARGER_CONNECTED
-	gpio.clear(gpio::PortC, 16);	// POS_AIR_ENABLE
+	gpio.clear(gpio::PortC, 16);	// AIR_POS
+	gpio.clear(gpio::PortB, 1);		// AIR_NEG
 	gpio.clear(gpio::PortC, 17);	// ENABLE_COOLANT_PUMP
 	gpio.clear(gpio::PortC, 6);		// DCDC_DISABLE
 	gpio.clear(gpio::PortC, 7);		// PRECHARGE_FAILED
-	gpio.set(gpio::PortD, 15);		// LED
 
     SysTick_Config(TIMER_PERIOD);
 
     while(1) {
     	if(vcu.flag == true) {
     		// indicator LED
-    		gpio.toggle(gpio::PortD, 16);
+    		if(vcu.state == AIR_OFF) {
+    			gpio.clear(gpio::PortD, 16);
+    			gpio.clear(gpio::PortD, 15);
+    		} else if(vcu.state == PRECHARGE) {
+    			gpio.clear(gpio::PortD, 16);
+    			gpio.set(gpio::PortD, 15);
+    		} else if(vcu.state == AIR_ON) {
+    			gpio.set(gpio::PortD, 16);
+    			gpio.clear(gpio::PortD, 15);
+    		} else if(vcu.state == READY_TO_CHARGE) {
+    			gpio.set(gpio::PortD, 16);
+    			gpio.set(gpio::PortD, 15);
+    		} else if(vcu.state == READY_TO_DRIVE) {
+    			gpio.toggle(gpio::PortD, 16);
+    		    gpio.toggle(gpio::PortD, 15);
+    		}
 
     		// ADC input map
     	    channel_config.channelNumber = 8U;
@@ -64,22 +80,27 @@ int main(void) {
     	    vcu.shutdown_loop();
 
     	    // GPIO output map
-    	    if(vcu.input[POS_AIR_ENABLE] == HIGH)
+    	    if(vcu.output[AIR_POS] == HIGH)
     	    	gpio.set(gpio::PortC, 16);
     	    else
     	    	gpio.clear(gpio::PortC, 16);
 
-    	    if(vcu.input[ENABLE_COOLANT_PUMP] == HIGH)
+    	    if(vcu.output[AIR_NEG] == HIGH)
+    	    	gpio.set(gpio::PortB, 1);
+    	    else
+    	    	gpio.clear(gpio::PortC, 16);
+
+    	    if(vcu.output[ENABLE_COOLANT_PUMP] == HIGH)
     	    	gpio.set(gpio::PortC, 17);
     	    else
     	    	gpio.clear(gpio::PortC, 17);
 
-    	    if(vcu.input[DCDC_DISABLE] == HIGH)
+    	    if(vcu.output[DCDC_DISABLE] == HIGH)
     	    	gpio.set(gpio::PortC, 6);
     	    else
     	    	gpio.clear(gpio::PortC, 6);
 
-    	    if(vcu.input[PRECHARGE_FAILED] == HIGH)
+    	    if(vcu.output[PRECHARGE_FAILED] == HIGH)
     	    	gpio.set(gpio::PortC, 7);
     	    else
     	    	gpio.clear(gpio::PortC, 7);
