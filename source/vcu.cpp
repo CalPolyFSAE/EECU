@@ -1,5 +1,6 @@
 #include "vcu.h"
 
+// VCU class constructor
 VCU::VCU() {
 	int i;
 
@@ -13,12 +14,8 @@ VCU::VCU() {
 		VCU::output[i] = LOW;
 }
 
+// VCU shutdown loop
 void VCU::shutdown_loop() {
-	if(VCU::flag == true)
-		VCU::flag = false;
-	else
-		return;
-
 	switch(VCU::state) {
 	case AIR_OFF:
 		VCU::output[AIR_POS] = LOW;
@@ -41,10 +38,10 @@ void VCU::shutdown_loop() {
 		VCU::output[DCDC_DISABLE] = HIGH;
 		VCU::timer++;
 
-		if(((VCU::timer > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] < (BATTERY_PERCENTAGE * VCU::input[BMS_VOLTAGE] / 100)) && (VCU::input[CHARGER_CONNECTED] == LOW)) || (VCU::input[TSREADY] == LOW)) {
+		if(((VCU::timer > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] < ((VCU::input[BMS_VOLTAGE] * BATTERY_PERCENTAGE) / 100)) && (VCU::input[CHARGER_CONNECTED] == LOW)) || (VCU::input[TSREADY] == LOW)) {
 			VCU::state = AIR_OFF;
 			VCU::output[PRECHARGE_FAILED] = HIGH;
-		} else if((((VCU::timer > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] > (BATTERY_PERCENTAGE * VCU::input[BMS_VOLTAGE] / 100))) || (VCU::input[CHARGER_CONNECTED] == HIGH)) && (VCU::input[TSREADY] == HIGH)) {
+		} else if((((VCU::timer > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] > ((VCU::input[BMS_VOLTAGE] * BATTERY_PERCENTAGE) / 100))) || (VCU::input[CHARGER_CONNECTED] == HIGH)) && (VCU::input[TSREADY] == HIGH)) {
 			VCU::state = AIR_ON;
 		}
 
@@ -58,7 +55,7 @@ void VCU::shutdown_loop() {
 
 		if(VCU::input[TSREADY] == LOW) {
 			VCU::state = AIR_OFF;
-		} else if((VCU::input[CHARGER_CONNECTED] == LOW) && (VCU::input[TSREADY]) == HIGH) {
+		} else if((VCU::input[CHARGER_CONNECTED] == LOW) && (VCU::input[TSREADY] == HIGH)) {
 			VCU::state = READY_TO_DRIVE;
 			VCU::timer = 0;
 		} else if((VCU::input[CHARGER_CONNECTED] == HIGH) && (VCU::input[TSREADY] == HIGH)) {
@@ -73,12 +70,15 @@ void VCU::shutdown_loop() {
 		VCU::output[ENABLE_COOLANT_PUMP] = LOW;
 		VCU::output[DCDC_DISABLE] = HIGH;
 
-		if(VCU::input[TSREADY] == LOW)
+		if(VCU::input[TSREADY] == LOW) {
 			VCU::state = AIR_OFF;
+		}
 
 		break;
 
 	case READY_TO_DRIVE:
+		VCU::timer++;
+
 		if(VCU::timer > MC_CHARGE_TIME) {
 			VCU::output[AIR_POS] = HIGH;
 			VCU::output[AIR_NEG] = HIGH;
@@ -86,9 +86,46 @@ void VCU::shutdown_loop() {
 			VCU::output[DCDC_DISABLE] = LOW;
 		}
 
-		if(VCU::input[TSREADY] == LOW)
+		if(VCU::input[TSREADY] == LOW) {
 			VCU::state = AIR_OFF;
+		}
 
 		break;
 	}
+}
+
+// gets the VCU interrupt flag
+bool VCU::get_flag() {
+	return VCU::flag;
+}
+
+// sets the VCU interrupt flag
+void VCU::set_flag() {
+	VCU::flag = true;
+}
+
+// clears the VCU interrupt flag
+void VCU::clear_flag() {
+	VCU::flag = false;
+}
+
+// gets the current state of the VCU
+state_t VCU::get_state() {
+	return VCU::state;
+}
+
+// sets the VCU input signals
+void VCU::set_input(uint32_t *input) {
+	int i;
+
+	for(i = 0; i < INPUT_COUNT; i++)
+		VCU::input[i] = input[i];
+}
+
+// gets the VCU output signals
+void VCU::get_output(uint32_t *output) {
+	int i;
+
+	for(i = 0; i < OUTPUT_COUNT; i++)
+		output[i] = VCU::output[i];
 }
