@@ -7,7 +7,7 @@ Development By: Ayusman Saha
 ## Project Description
 ---
 
-This board will handle the main controls for the E-Car. It handles tasks like converting throttle input to torque requests, safety systems monitoring, control loops, and power limiting. Completion of the basic functionality of this code is paramount to the success of the E-car.
+The Vehicle Control Unit will handle the main controls for the E-Car. It handles tasks like converting throttle input to torque requests, safety systems monitoring, control loops, and power limiting. Completion of the basic functionality of this code is paramount to the success of the E-car.
 
 ## Project Requirements
 
