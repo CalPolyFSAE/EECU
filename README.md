@@ -1,8 +1,7 @@
 # VCU
-source code for the Vehicle Control Unit
-# VCU (Vehicle Control Unit)
 
-Written by: Oliver Ousterman
+Requirements By: Oliver Ousterman
+Development By: Ayusman Saha
 
 ## Project Description
 ---
