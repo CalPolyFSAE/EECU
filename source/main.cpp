@@ -21,67 +21,27 @@ int main(void) {
     BOARD_InitBootClocks();
     BOARD_InitBootPeripherals();
 
-    // initialize ADC driver
-    adc::ADC::ConstructStatic(NULL);
-    adc::ADC& adc = adc::ADC::StaticClass();
-    adc.config_base(ADC0, NULL);
-    if(adc.calibrate(ADC0) != kStatus_Success) assert(0);
-
     // initialize GPIO driver
     gpio::GPIO::ConstructStatic();
     gpio::GPIO& gpio = gpio::GPIO::StaticClass();
-    gpio.in_dir(gpio::PortE, 8);	// TSREADY
-    gpio.in_dir(gpio::PortD, 5);	// CHARGER_CONNECTED
-	gpio.clear(gpio::PortC, 16);	// AIR_POS
-	gpio.clear(gpio::PortB, 1);		// AIR_NEG
-	gpio.clear(gpio::PortC, 17);	// ENABLE_COOLANT_PUMP
-	gpio.clear(gpio::PortC, 6);		// DCDC_DISABLE
-	gpio.clear(gpio::PortC, 7);		// PRECHARGE_FAILED
-	gpio.set(gpio::PortD, 15);		// LED
+	gpio.set(gpio::PortD, 15);
 
     SysTick_Config(TIMER_PERIOD);
 
     while(1) {
     	if(vcu.get_flag() == true) {
-    		// indicator LED
     		gpio.toggle(gpio::PortD, 16);
 
-    		// input map
-    	    input[MC_VOLTAGE] = adc.read(ADC0, 8);
-    	    input[BMS_VOLTAGE] = adc.read(ADC0, 9);
-    	    input[TSREADY] = gpio.read(gpio::PortE, 8);
-    	    input[CHARGER_CONNECTED] = gpio.read(gpio::PortD, 5);
+    		// input map - TODO
 
-    	    // run VCU shutdown loop
-    	    vcu.set_input(input);
+    	    // core VCU logic
+    	    vcu.map_input(input);
     	    vcu.shutdown_loop();
-    	    vcu.get_output(output);
+    	    vcu.redundancy_loop();
+    	    vcu.motor_loop();
+    	    vcu.map_output(output);
 
-    	    // output map
-    	    if(output[AIR_POS] == HIGH)
-    	    	gpio.set(gpio::PortC, 16);
-    	    else
-    	    	gpio.clear(gpio::PortC, 16);
-
-    	    if(output[AIR_NEG] == HIGH)
-    	    	gpio.set(gpio::PortB, 1);
-    	    else
-    	    	gpio.clear(gpio::PortC, 16);
-
-    	    if(output[ENABLE_COOLANT_PUMP] == HIGH)
-    	    	gpio.set(gpio::PortC, 17);
-    	    else
-    	    	gpio.clear(gpio::PortC, 17);
-
-    	    if(output[DCDC_DISABLE] == HIGH)
-    	    	gpio.set(gpio::PortC, 6);
-    	    else
-    	    	gpio.clear(gpio::PortC, 6);
-
-    	    if(output[PRECHARGE_FAILED] == HIGH)
-    	    	gpio.set(gpio::PortC, 7);
-    	    else
-    	    	gpio.clear(gpio::PortC, 7);
+    	    // output map - TODO
 
     	    vcu.clear_flag();
     	}
