@@ -19,7 +19,13 @@ The Vehicle Control Unit will handle the main controls for the E-Car. It handles
 	- Logic Diagram for MC FSM on [slide 2](https://docs.google.com/presentation/d/1vSBAEsSL6-lunfy04aZIRiZ92vXWrCinEGm5FgSTTIM/edit#slide=id.g4262beed33_0_27)
 	- MC retuquires a "Heartbeat" comman message at min every 500ms
 - Shutdown FSM
-	- Logic Diagram for shutdown FSM on [slide 5](https://docs.google.com/presentation/d/1vSBAEsSL6-lunfy04aZIRiZ92vXWrCinEGm5FgSTTIM/edit#slide=id.g4262beed33_0_27)
+	
+	- APPS(accelerator pedal position sensor) implausibility check (Rule T6.2.3)
+		- if the two pedal position sensors deviate by >10% on pedal position for >100ms then the motor must be shut down immediately
+	- APPS/BSPD check (rule EV2.4)
+		- The power to the motors must be immediately shut down completely, if the mechanical brakes are actuated and the APPS signals more than 25% pedal travel at the same time. This must be demonstrated when the motor controllers are under load.
+		- The motor power shut down must remain active until the APPS signals less than 5% pedal travel, whether the brakes are still actuated or not.
+		- Logic Diagram for shutdown FSM on [slide 5](https://docs.google.com/presentation/d/1vSBAEsSL6-lunfy04aZIRiZ92vXWrCinEGm5FgSTTIM/edit#slide=id.g4262beed33_0_27)
 - Software safety redundant loops
 	- MCU_REDUNDANCY_1 = MCU_REDUNDANCY_2 = BSPD_OK && IMD_OK && BMS_OK
 	- BSPD_OK
@@ -91,3 +97,4 @@ The Vehicle Control Unit will handle the main controls for the E-Car. It handles
 ---
 1. 11/3/18 - Modified Formatting and added extra features
 1. 11/10/18 - Added Bootup Checks
+1. 1/9/19 - added rules EV2.4 and T6.2.3
