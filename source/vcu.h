@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define VCU_FREQUENCY 10U
+#define VCU_FREQUENCY 100U
 #define CLOCK_FREQUENCY 60000000U
 
 #define TIMER_PERIOD (CLOCK_FREQUENCY / VCU_FREQUENCY)
@@ -74,9 +74,9 @@ private:
 public:
 	VCU();
 
+	void motor_loop();
 	void shutdown_loop();
 	void redundancy_loop();
-	void motor_loop();
 
 	void map_input(uint32_t *input);
 	void map_output(uint32_t *output);

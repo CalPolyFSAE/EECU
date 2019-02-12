@@ -12,6 +12,9 @@ VCU::VCU() {
 		VCU::output[i] = LOW;
 }
 
+// VCU motor loop
+void VCU::motor_loop() {}
+
 // VCU shutdown loop
 void VCU::shutdown_loop() {
 	switch(VCU::state[SHUTDOWN]) {
@@ -108,9 +111,6 @@ void VCU::redundancy_loop() {
 		VCU::output[MCU_REDUNDANCY_2] = LOW;
 	}
 }
-
-// VCU motor loop
-void VCU::motor_loop() {}
 
 // map the VCU input signals
 void VCU::map_input(uint32_t *input) {
