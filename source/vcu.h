@@ -12,11 +12,11 @@
 #define MC_CHARGE_TIME (1 * VCU_FREQUENCY)
 #define BATTERY_PERCENTAGE 90
 
-#define CA 2.5
-#define BFA 2.5
-#define BRA 2.5
-#define VOLTAGE_MIN 0.5
-#define VOLTAGE_MAX	4.5
+#define CA 2048
+#define BFA 2048
+#define BRA 2048
+#define VOLTAGE_MIN 410
+#define VOLTAGE_MAX	3686
 
 enum INPUT {
 	TSREADY,
