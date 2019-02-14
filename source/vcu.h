@@ -12,9 +12,9 @@
 #define MC_CHARGE_TIME (1 * VCU_FREQUENCY)
 #define BATTERY_PERCENTAGE 90
 
-#define CA 2048
-#define BFA 2048
-#define BRA 2048
+#define CA 2048		// TODO - replace with actual value
+#define BFA 2048	// TODO - replace with actual value
+#define BRA 2048	// TODO - replace with actual value
 #define VOLTAGE_MIN 410
 #define VOLTAGE_MAX	3686
 
