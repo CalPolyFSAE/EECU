@@ -24,15 +24,21 @@ int main() {
     // initialize GPIO driver
     gpio::GPIO::ConstructStatic();
     gpio::GPIO& gpio = gpio::GPIO::StaticClass();
-	gpio.set(gpio::PortD, 15);
+
+	// initialize ADC driver
+	adc::ADC::ConstructStatic(NULL);
+	adc::ADC& adc = adc::ADC::ADC::StaticClass();
 
     SysTick_Config(TIMER_PERIOD);
 
     while(1) {
     	if(vcu.get_flag() == true) {
-    		gpio.toggle(gpio::PortD, 16);
-
-    		// input map - TODO
+     		// input map - TODO
+    		input[BF] = adc.read(ADC0, 8);
+    		input[BR] = adc.read(ADC1, 6);
+    		input[C] = adc.read(ADC2, 12);
+    		input[IMD_OK] = gpio.read(gpio::PortC, 16);
+    		input[BMS_OK] = gpio.read(gpio::PortC, 17);
 
     	    // core VCU logic
     	    vcu.map_input(input);
@@ -42,6 +48,15 @@ int main() {
     	    vcu.map_output(output);
 
     	    // output map - TODO
+    	    if(output[MCU_REDUNDANCY_1] == HIGH)
+    	    	gpio.set(gpio::PortD, 15);
+    	    else
+    	    	gpio.clear(gpio::PortD, 15);
+
+    	    if(output[MCU_REDUNDANCY_2] == HIGH)
+    	    	gpio.set(gpio::PortD, 16);
+    	    else
+    	    	gpio.clear(gpio::PortD, 16);
 
     	    vcu.clear_flag();
     	}
