@@ -8,10 +8,12 @@
 
 #define TIMER_PERIOD (CLOCK_FREQUENCY / VCU_FREQUENCY)
 
+#define RTDS_TIME (2 * VCU_FREQUENCY)
 #define ALLOWED_PRECHARGE_TIME (4 * VCU_FREQUENCY)
 #define MC_CHARGE_TIME (1 * VCU_FREQUENCY)
 #define BATTERY_PERCENTAGE 90
 
+#define TA 41				// 0.05V
 #define CA 2293				// 2.80V
 #define BFA 1720			// 2.10V
 #define BRA 1458			// 1.78V
@@ -19,6 +21,10 @@
 #define VOLTAGE_MAX	3686	// 4.50V
 
 enum INPUT {
+	MC_ENABLE,
+	MC_FAULT,
+	THROTTLE_AVG,
+	THROTTLE_OK,
 	TSREADY,
 	MC_VOLTAGE,
 	BMS_VOLTAGE,
@@ -33,6 +39,8 @@ enum INPUT {
 };
 
 enum OUTPUT {
+	MC_CAN_MSG,
+	RTDS,
 	AIR_POS,
 	AIR_NEG,
 	ENABLE_COOLANT_PUMP,
@@ -48,7 +56,17 @@ enum SIGNAL {
 	HIGH,
 };
 
+enum CAN_MSG {
+	HEARTBEAT,
+	ENABLE,
+	DISABLE,
+	CLEAR_FAULTS,
+	TORQUE,
+};
+
 typedef enum STATE {
+	STANDBY,
+	DRIVING,
 	AIR_OFF,
 	PRECHARGE,
 	AIR_ON,
@@ -57,9 +75,9 @@ typedef enum STATE {
 } state_t;
 
 typedef enum LOOP {
+	MOTOR,
 	SHUTDOWN,
 	REDUNDANCY,
-	MOTOR,
 	LOOP_COUNT,
 } loop_t;
 
@@ -67,9 +85,9 @@ class VCU {
 private:
 	volatile bool flag;
 	state_t state[LOOP_COUNT];
+	uint32_t timer[LOOP_COUNT];
 	uint32_t input[INPUT_COUNT];
 	uint32_t output[OUTPUT_COUNT];
-	uint32_t timer;
 
 public:
 	VCU();
