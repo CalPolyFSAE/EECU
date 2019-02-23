@@ -65,8 +65,6 @@ enum CAN_MSG {
 };
 
 typedef enum STATE {
-	STANDBY,
-	DRIVING,
 	AIR_OFF,
 	PRECHARGE,
 	AIR_ON,
@@ -74,18 +72,11 @@ typedef enum STATE {
 	READY_TO_DRIVE,
 } state_t;
 
-typedef enum LOOP {
-	MOTOR,
-	SHUTDOWN,
-	REDUNDANCY,
-	LOOP_COUNT,
-} loop_t;
-
 class VCU {
 private:
 	volatile bool flag;
-	state_t state[LOOP_COUNT];
-	uint32_t timer[LOOP_COUNT];
+	state_t state;
+	uint32_t timer;
 	uint32_t input[INPUT_COUNT];
 	uint32_t output[OUTPUT_COUNT];
 
@@ -102,7 +93,7 @@ public:
 	bool get_flag();
 	void set_flag();
 	void clear_flag();
-	state_t get_state(loop_t loop);
+	state_t get_state();
 };
 
 #endif

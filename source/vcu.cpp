@@ -3,8 +3,7 @@
 // VCU class constructor
 VCU::VCU() {
 	VCU::flag = false;
-	VCU::state[MOTOR] = STANDBY;
-	VCU::state[SHUTDOWN] = AIR_OFF;
+	VCU::state = AIR_OFF;
 
 	for(int i = 0; i < INPUT_COUNT; i++)
 		VCU::input[i] = LOW;
@@ -14,52 +13,11 @@ VCU::VCU() {
 }
 
 // VCU motor loop
-void VCU::motor_loop() {
-	switch(VCU::state[MOTOR]) {
-	case STANDBY:
-		VCU::timer[MOTOR]++;
-
-		if(VCU::timer[MOTOR] == 1) {
-			VCU::output[MC_CAN_MSG] = CLEAR_FAULTS;
-		} else {
-			VCU::output[MC_CAN_MSG] = HEARTBEAT;
-		}
-
-		if((VCU::input[MC_FAULT] == LOW) && (VCU::input[THROTTLE_AVG] < TA) && (VCU::input[AIR_POS] == LOW) && (VCU::input[AIR_NEG] == LOW) && (VCU::input[BF] > BFA) && (VCU::input[BR] > BRA) && (VCU::input[BF] > VOLTAGE_MIN) && (VCU::input[BF] < VOLTAGE_MAX) && (VCU::input[BR] > VOLTAGE_MIN) && (VCU::input[BR] < VOLTAGE_MAX) && (VCU::input[MC_ENABLE] == HIGH)) {
-			VCU::state[MOTOR] = DRIVING;
-			VCU::timer[MOTOR] = 0;
-		}
-
-		break;
-
-	case DRIVING:
-		VCU::timer[MOTOR]++;
-
-		if(VCU::timer[MOTOR] == 1) {
-			VCU::output[MC_CAN_MSG] = CLEAR_FAULTS;
-		} else if(VCU::timer[MOTOR] == 2) {
-			VCU::output[MC_CAN_MSG] = DISABLE;
-		} else if(VCU::timer[MOTOR] == 3) {
-			VCU::output[MC_CAN_MSG] = ENABLE;
-		} else if(VCU::timer[MOTOR] < RTDS_TIME) {
-			VCU::output[RTDS] = HIGH;
-		} else {
-			VCU::output[MC_CAN_MSG] = TORQUE;
-			VCU::output[RTDS] = LOW;
-		}
-
-		if((VCU::input[MC_ENABLE] == LOW) || (VCU::input[MC_FAULT] == LOW) || (VCU::input[THROTTLE_OK] == LOW) || (VCU::input[THROTTLE_AVG]) || (VCU::input[AIR_POS] == HIGH) || (VCU::input[AIR_NEG] == HIGH) || !((VCU::input[BF] > BFA) && (VCU::input[BR] > BRA) && (VCU::input[BF] > VOLTAGE_MIN) && (VCU::input[BF] < VOLTAGE_MAX) && (VCU::input[BR] > VOLTAGE_MIN) && (VCU::input[BR] < VOLTAGE_MAX) && (VCU::input[MC_ENABLE] == HIGH))) {
-			VCU::state[MOTOR] = STANDBY;
-			VCU::timer[MOTOR] = 0;
-		}
-
-		break;
-	}
-}
+void VCU::motor_loop() {}
 
 // VCU shutdown loop
 void VCU::shutdown_loop() {
-	switch(VCU::state[SHUTDOWN]) {
+	switch(VCU::state) {
 	case AIR_OFF:
 		VCU::output[AIR_POS] = LOW;
 		VCU::output[AIR_NEG] = LOW;
@@ -67,9 +25,9 @@ void VCU::shutdown_loop() {
 		VCU::output[DCDC_DISABLE] = HIGH;
 
 		if(input[TSREADY] == HIGH) {
-			VCU::state[SHUTDOWN] = PRECHARGE;
+			VCU::state = PRECHARGE;
 			VCU::output[PRECHARGE_FAILED] = LOW;
-			VCU::timer[SHUTDOWN] = 0;
+			VCU::timer = 0;
 		}
 
 		break;
@@ -79,13 +37,13 @@ void VCU::shutdown_loop() {
 		VCU::output[AIR_NEG] = HIGH;
 		VCU::output[ENABLE_COOLANT_PUMP] = LOW;
 		VCU::output[DCDC_DISABLE] = HIGH;
-		VCU::timer[SHUTDOWN]++;
+		VCU::timer++;
 
-		if(((VCU::timer[SHUTDOWN] > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] < ((VCU::input[BMS_VOLTAGE] * BATTERY_PERCENTAGE) / 100)) && (VCU::input[CHARGER_CONNECTED] == LOW)) || (VCU::input[TSREADY] == LOW)) {
-			VCU::state[SHUTDOWN] = AIR_OFF;
+		if(((VCU::timer > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] < ((VCU::input[BMS_VOLTAGE] * BATTERY_PERCENTAGE) / 100)) && (VCU::input[CHARGER_CONNECTED] == LOW)) || (VCU::input[TSREADY] == LOW)) {
+			VCU::state = AIR_OFF;
 			VCU::output[PRECHARGE_FAILED] = HIGH;
-		} else if((((VCU::timer[SHUTDOWN] > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] > ((VCU::input[BMS_VOLTAGE] * BATTERY_PERCENTAGE) / 100))) || (VCU::input[CHARGER_CONNECTED] == HIGH)) && (VCU::input[TSREADY] == HIGH)) {
-			VCU::state[SHUTDOWN] = AIR_ON;
+		} else if((((VCU::timer > ALLOWED_PRECHARGE_TIME) && (VCU::input[MC_VOLTAGE] > ((VCU::input[BMS_VOLTAGE] * BATTERY_PERCENTAGE) / 100))) || (VCU::input[CHARGER_CONNECTED] == HIGH)) && (VCU::input[TSREADY] == HIGH)) {
+			VCU::state = AIR_ON;
 		}
 
 		break;
@@ -97,12 +55,12 @@ void VCU::shutdown_loop() {
 		VCU::output[DCDC_DISABLE] = HIGH;
 
 		if(VCU::input[TSREADY] == LOW) {
-			VCU::state[SHUTDOWN] = AIR_OFF;
+			VCU::state = AIR_OFF;
 		} else if((VCU::input[CHARGER_CONNECTED] == LOW) && (VCU::input[TSREADY] == HIGH)) {
-			VCU::state[SHUTDOWN] = READY_TO_DRIVE;
-			VCU::timer[SHUTDOWN] = 0;
+			VCU::state = READY_TO_DRIVE;
+			VCU::timer = 0;
 		} else if((VCU::input[CHARGER_CONNECTED] == HIGH) && (VCU::input[TSREADY] == HIGH)) {
-			VCU::state[SHUTDOWN] = READY_TO_CHARGE;
+			VCU::state = READY_TO_CHARGE;
 		}
 
 		break;
@@ -114,15 +72,15 @@ void VCU::shutdown_loop() {
 		VCU::output[DCDC_DISABLE] = HIGH;
 
 		if(VCU::input[TSREADY] == LOW) {
-			VCU::state[SHUTDOWN] = AIR_OFF;
+			VCU::state = AIR_OFF;
 		}
 
 		break;
 
 	case READY_TO_DRIVE:
-		VCU::timer[SHUTDOWN]++;
+		VCU::timer++;
 
-		if(VCU::timer[SHUTDOWN] > MC_CHARGE_TIME) {
+		if(VCU::timer > MC_CHARGE_TIME) {
 			VCU::output[AIR_POS] = HIGH;
 			VCU::output[AIR_NEG] = HIGH;
 			VCU::output[ENABLE_COOLANT_PUMP] = HIGH;
@@ -130,7 +88,7 @@ void VCU::shutdown_loop() {
 		}
 
 		if(VCU::input[TSREADY] == LOW) {
-			VCU::state[SHUTDOWN] = AIR_OFF;
+			VCU::state = AIR_OFF;
 		}
 
 		break;
@@ -182,6 +140,6 @@ void VCU::clear_flag() {
 }
 
 // gets the state of a VCU loop
-state_t VCU::get_state(loop_t loop) {
-	return VCU::state[loop];
+state_t VCU::get_state() {
+	return VCU::state;
 }
