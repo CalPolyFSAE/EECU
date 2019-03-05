@@ -13,7 +13,9 @@ VCU::VCU() {
 }
 
 // VCU motor loop
-void VCU::motor_loop() {}
+void VCU::motor_loop() {
+	// TODO
+}
 
 // VCU shutdown loop
 void VCU::shutdown_loop() {
@@ -110,18 +112,6 @@ void VCU::redundancy_loop() {
 		VCU::output[MCU_REDUNDANCY_1] = LOW;
 		VCU::output[MCU_REDUNDANCY_2] = LOW;
 	}
-}
-
-// map the VCU input signals
-void VCU::map_input(uint32_t *input) {
-	for(int i = 0; i < INPUT_COUNT; i++)
-		VCU::input[i] = input[i];
-}
-
-// map the VCU output signals
-void VCU::map_output(uint32_t *output) {
-	for(int i = 0; i < OUTPUT_COUNT; i++)
-		output[i] = VCU::output[i];
 }
 
 // gets the VCU interrupt flag

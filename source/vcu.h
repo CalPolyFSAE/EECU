@@ -35,6 +35,7 @@ enum INPUT {
 	BSPD_OK,
 	IMD_OK,
 	BMS_OK,
+	MC_TACH,
 	INPUT_COUNT,
 };
 
@@ -77,18 +78,17 @@ private:
 	volatile bool flag;
 	state_t state;
 	uint32_t timer;
+
+
+public:
 	uint32_t input[INPUT_COUNT];
 	uint32_t output[OUTPUT_COUNT];
 
-public:
 	VCU();
 
 	void motor_loop();
 	void shutdown_loop();
 	void redundancy_loop();
-
-	void map_input(uint32_t *input);
-	void map_output(uint32_t *output);
 
 	bool get_flag();
 	void set_flag();
