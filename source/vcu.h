@@ -21,27 +21,25 @@
 #define VOLTAGE_MAX	3686	// 4.50V
 
 enum INPUT {
-	MC_ENABLE,
+	//MC_ENABLE,
 	MC_FAULT,
-	THROTTLE_AVG,
-	THROTTLE_OK,
-	TSREADY,
 	MC_VOLTAGE,
-	BMS_VOLTAGE,
+	MC_TACHOMETER,
+	//THROTTLE_AVG,
+	//THROTTLE_OK,
+	TSREADY,
 	CHARGER_CONNECTED,
+	BMS_VOLTAGE,
+	BMS_OK,
 	C,
 	BF,
 	BR,
 	BSPD_OK,
 	IMD_OK,
-	BMS_OK,
-	MC_TACH,
 	INPUT_COUNT,
 };
 
 enum OUTPUT {
-	MC_CAN_MSG,
-	RTDS,
 	AIR_POS,
 	AIR_NEG,
 	ENABLE_COOLANT_PUMP,
@@ -55,14 +53,6 @@ enum OUTPUT {
 enum SIGNAL {
 	LOW,
 	HIGH,
-};
-
-enum CAN_MSG {
-	HEARTBEAT,
-	ENABLE,
-	DISABLE,
-	CLEAR_FAULTS,
-	TORQUE,
 };
 
 typedef enum STATE {
@@ -93,6 +83,7 @@ public:
 	bool get_flag();
 	void set_flag();
 	void clear_flag();
+
 	state_t get_state();
 };
 

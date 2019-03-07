@@ -1,10 +1,6 @@
 #ifndef MOTOR_CONTROLLER_H_
 #define MOTOR_CONTROLLER_H_
 
-#include <stdio.h>
-
-#include "canlight.h"
-
 // motor controller CAN settings
 #define MOTOR_CONTROLLER_CAN_OFFSET 0x160
 #define MOTOR_CONTROLLER_CAN_CHANNEL 0
@@ -182,7 +178,7 @@
 #define EEPROM_PARAMETER_BRAKE_PEDAL_FLIPPED			186
 #define EEPROM_PARAMETER_BRAKE_INPUT_BYPASSED			199
 
-// handler to process CAN messages from the motor controller
+void torque_command(int16_t torque);
 void motor_controller_handler();
 
 #endif
