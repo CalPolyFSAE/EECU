@@ -178,7 +178,9 @@
 #define EEPROM_PARAMETER_BRAKE_PEDAL_FLIPPED			186
 #define EEPROM_PARAMETER_BRAKE_INPUT_BYPASSED			199
 
-void torque_command(int16_t torque);
+// function prototypes
+void motor_controller_torque_command(int16_t torque);
+void motor_controller_clear_faults();
 void motor_controller_handler();
 
 #endif

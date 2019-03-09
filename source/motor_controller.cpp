@@ -2,6 +2,9 @@
 #include "canlight.h"
 #include "motor_controller.h"
 
+#include <stdio.h>
+#include "fsl_debug_console.h"
+
 using namespace BSP;
 
 extern VCU vcu;
@@ -58,9 +61,18 @@ static void receive_broadcast_message() {
 		break;
 
 	case BROADCAST_MESSAGE_FAULT_CODES:
-		vcu.input[MC_FAULT] = frame.data[7] | frame.data[6] | frame.data[5] | frame.data[4] | frame.data[3] | frame.data[2] | frame.data[1] | frame.data[0];
+		vcu.input[MC_POST_FAULT] = (frame.data[3] << 24) | (frame.data[2] << 16) | (frame.data[1] << 8) | frame.data[0];
+		vcu.input[MC_RUN_FAULT] = (frame.data[7] << 24) | (frame.data[6] << 16) | (frame.data[5] << 8) | frame.data[4];
+		break;
+
+
+
+// ------------------------------------------------------------------------
+	case BROADCAST_MESSAGE_INTERNAL_STATES:
+		vcu.input[MC_STATE] = (frame.data[6] << 8) | frame.data[4];
 		break;
 	}
+// ------------------------------------------------------------------------
 }
 
 // receives a parameter message from the motor controller
@@ -68,17 +80,20 @@ static void receive_parameter_message() {
 	can::CANlight &can = can::CANlight::StaticClass();
 	can::CANlight::frame frame = can.readrx(MOTOR_CONTROLLER_CAN_CHANNEL);
 
-	switch(frame.id - MOTOR_CONTROLLER_CAN_OFFSET) {
-		// TODO
-	}
+	// TODO
 }
 
 // sends a torque command to the motor controller
-void torque_command(int16_t torque) {
+void motor_controller_torque_command(int16_t torque) {
 	if(torque < 0)
-		send_command_message(torque, 0, 1, 1, 0);
-	else
 		send_command_message(0, 0, 0, 0, 0);
+	else
+		send_command_message(torque, 0, 1, 1, 0);
+}
+
+// clears all motor controller faults
+void motor_controller_clear_faults() {
+	send_parameter_message(COMMAND_PARAMETER_FAULT_CLEAR, 1, 0);
 }
 
 // handler to process CAN messages from the motor controller
