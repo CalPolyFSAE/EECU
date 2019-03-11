@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "MKE18F16.h"
 #include "board.h"
 #include "clock_config.h"

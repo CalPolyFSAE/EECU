@@ -1,3 +1,5 @@
+#include "fsl_debug_console.h"
+
 #include "vcu.h"
 #include "gpio.h"
 #include "adc.h"
@@ -234,4 +236,53 @@ void VCU::clear_flag() {
 // gets the state of a VCU loop
 state_t VCU::get_state() {
 	return VCU::state;
+}
+
+
+// DEBUG - print input buffer
+void VCU::input_print() {
+	PRINTF("-- VCU INPUTS ---------------------\n");
+	PRINTF("MC_EN = 0x%08lX\n", input[MC_EN]);
+	PRINTF("MC_POST_FAULT = 0x%08lX\n", input[MC_POST_FAULT]);
+	PRINTF("MC_RUN_FAULT = 0x%08lX\n", input[MC_RUN_FAULT]);
+	PRINTF("MC_VOLTAGE = 0x%08lX\n", input[MC_VOLTAGE]);
+	PRINTF("MC_TACHOMETER = 0x%08lX\n", input[MC_TACHOMETER]);
+	PRINTF("THROTTLE_1 = 0x%08lX\n", input[THROTTLE_1]);
+	PRINTF("THROTTLE_2 = 0x%08lX\n", input[THROTTLE_2]);
+	PRINTF("TS_RDY = 0x%08lX\n", input[TS_RDY]);
+	PRINTF("TS_READY_SENSE = 0x%08lX\n", input[TS_READY_SENSE]);
+	PRINTF("TS_LIVE = 0x%08lX\n", input[TS_LIVE]);
+	PRINTF("LATCH_SENSE = 0x%08lX\n", input[LATCH_SENSE]);
+	PRINTF("BMS_VOLTAGE = 0x%08lX\n", input[BMS_VOLTAGE]);
+	PRINTF("BMS_OK = 0x%08lX\n", input[BMS_OK]);
+	PRINTF("IMD_OK = 0x%08lX\n", input[IMD_OK]);
+	PRINTF("BSPD_OK = 0x%08lX\n", input[BSPD_OK]);
+	PRINTF("CURRENT_SENSE = 0x%08lX\n", input[CURRENT_SENSE]);
+	PRINTF("BRAKE_FRONT = 0x%08lX\n", input[BRAKE_FRONT]);
+	PRINTF("BRAKE_REAR = 0x%08lX\n", input[BRAKE_REAR]);
+	PRINTF("WHEEL_SPEED_FR = 0x%08lX\n", input[WHEEL_SPEED_FR]);
+	PRINTF("WHEEL_SPEED_FL = 0x%08lX\n", input[WHEEL_SPEED_FL]);
+	PRINTF("WHEEL_SPEED_RR = 0x%08lX\n", input[WHEEL_SPEED_RR]);
+	PRINTF("WHEEL_SPEED_RL = 0x%08lX\n", input[WHEEL_SPEED_RL]);
+	PRINTF("-----------------------------------\n\n");
+}
+
+// DEBUG - print output buffer
+void VCU::output_print() {
+	PRINTF("-- VCU OUTPUTS --------------------\n");
+	PRINTF("RTDS = 0x%08lX\n", output[RTDS]);
+	PRINTF("BRAKE_LIGHT = 0x%08lX\n", output[BRAKE_LIGHT]);
+	PRINTF("AIR_POS = 0x%08lX\n", output[AIR_POS]);
+	PRINTF("AIR_NEG = 0x%08lX\n", output[AIR_NEG]);
+	PRINTF("PUMP_EN = 0x%08lX\n", output[PUMP_EN]);
+	PRINTF("DCDC_DISABLE = 0x%08lX\n", output[DCDC_DISABLE]);
+	PRINTF("PRECHARGE = 0x%08lX\n", output[PRECHARGE]);
+	PRINTF("DISCHARGE = 0x%08lX\n", output[DISCHARGE]);
+	PRINTF("REDUNDANT_1 = 0x%08lX\n", output[REDUNDANT_1]);
+	PRINTF("REDUNDANT_2 = 0x%08lX\n", output[REDUNDANT_2]);
+	PRINTF("FAN_EN = 0x%08lX\n", output[FAN_EN]);
+	PRINTF("FAN_PWM = 0x%08lX\n", output[FAN_PWM]);
+	PRINTF("GENERAL_PURPOSE_1 = 0x%08lX\n", output[GENERAL_PURPOSE_1]);
+	PRINTF("GENERAL_PURPOSE_2 = 0x%08lX\n", output[GENERAL_PURPOSE_2]);
+    PRINTF("-----------------------------------\n\n");
 }

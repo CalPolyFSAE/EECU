@@ -103,6 +103,9 @@ public:
 	void clear_flag();
 
 	state_t get_state();
+
+	void input_print();
+	void output_print();
 };
 
 #endif
