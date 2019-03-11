@@ -2,9 +2,6 @@
 #include "canlight.h"
 #include "motor_controller.h"
 
-#include <stdio.h>
-#include "fsl_debug_console.h"
-
 using namespace BSP;
 
 extern VCU vcu;
