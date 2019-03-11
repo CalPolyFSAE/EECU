@@ -2,7 +2,7 @@
 #define MOTOR_CONTROLLER_H_
 
 // motor controller CAN settings
-#define MOTOR_CONTROLLER_CAN_OFFSET 0x160
+#define MOTOR_CONTROLLER_CAN_OFFSET 0x160	// TODO - change offset to 0x0A0
 #define MOTOR_CONTROLLER_CAN_CHANNEL 0
 #define MOTOR_CONTROLLER_BAUD_RATE 500000
 

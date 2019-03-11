@@ -56,8 +56,8 @@ static void receive_broadcast_message() {
 		vcu.input[MC_TACHOMETER] = (frame.data[3] << 8) | frame.data[2];
 		break;
 
-	case BROADCAST_MESSAGE_INTERNAL_VOLTAGES:
-		vcu.input[MC_VOLTAGE] = (frame.data[7] << 8) | frame.data[6];
+	case BROADCAST_MESSAGE_VOLTAGE_INFORMATION:
+		vcu.input[MC_VOLTAGE] = (frame.data[1] << 8) | frame.data[0];
 		break;
 
 	case BROADCAST_MESSAGE_FAULT_CODES:
@@ -65,22 +65,11 @@ static void receive_broadcast_message() {
 		vcu.input[MC_RUN_FAULT] = (frame.data[7] << 24) | (frame.data[6] << 16) | (frame.data[5] << 8) | frame.data[4];
 		break;
 
-
-
-// ------------------------------------------------------------------------
+	// DEBUG
 	case BROADCAST_MESSAGE_INTERNAL_STATES:
 		vcu.input[MC_STATE] = (frame.data[6] << 8) | frame.data[4];
 		break;
 	}
-// ------------------------------------------------------------------------
-}
-
-// receives a parameter message from the motor controller
-static void receive_parameter_message() {
-	can::CANlight &can = can::CANlight::StaticClass();
-	can::CANlight::frame frame = can.readrx(MOTOR_CONTROLLER_CAN_CHANNEL);
-
-	// TODO
 }
 
 // sends a torque command to the motor controller
@@ -99,5 +88,4 @@ void motor_controller_clear_faults() {
 // handler to process CAN messages from the motor controller
 void motor_controller_handler() {
 	receive_broadcast_message();
-	receive_parameter_message();
 }

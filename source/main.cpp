@@ -33,7 +33,6 @@ int main() {
 
 	// initialize ADC driver
 	adc::ADC::ConstructStatic(NULL);
-	adc::ADC &adc = adc::ADC::ADC::StaticClass();
 
 	// initialize CAN driver
 	can::CANlight::ConstructStatic(&config);
@@ -52,34 +51,35 @@ int main() {
 
     while(1) {
     	if(vcu.get_flag() == true) {
-// ---------------------------------------------------------------------------------------------
-    		if(i >= VCU_FREQUENCY)
-    		{
+    		/*
+    		// read input signals to buffer
+    		vcu.input_map();
+
+    	    // core logic
+    	    vcu.motor_loop();
+    	    vcu.shutdown_loop();
+    	    vcu.redundancy_loop();
+
+    	    // write output signals from buffer
+    	    vcu.output_map();
+    	    */
+
+    		// DEBUG
+    		if(i >= VCU_FREQUENCY) {
     			gpio.toggle(gpio::PortD, 15);
     			PRINTF("MC POST_FAULT = 0x%08lX\n", vcu.input[MC_POST_FAULT]);
     			PRINTF("MC RUN_FAULT = 0x%08lX\n", vcu.input[MC_RUN_FAULT]);
     			PRINTF("MC STATE = 0x%04lX\n", vcu.input[MC_STATE]);
     			PRINTF("\n");
     			i = 0;
-    		}
-    		else
-    		{
+    		} else {
     			i++;
     		}
 
     		motor_controller_torque_command(10);
-// ---------------------------------------------------------------------------------------------
-    		/*
-    		// input map - TODO
 
-    	    // core VCU logic
-    	    vcu.motor_loop();
-    	    vcu.shutdown_loop();
-    	    vcu.redundancy_loop();
-
-    	    // output map - TODO
-			*/
-    		vcu.clear_flag();
+    	    // spinlock to synchronize thread
+    	    vcu.clear_flag();
     	}
     }
 
