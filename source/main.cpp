@@ -28,6 +28,33 @@ int main() {
     // initialize GPIO driver
     gpio::GPIO::ConstructStatic();
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
+    /*
+    gpio.in_dir(gpio::PortE, 6);
+    gpio.in_dir(gpio::PortE, 2);
+    gpio.in_dir(gpio::PortB, 6);
+    gpio.in_dir(gpio::PortB, 7);
+    gpio.in_dir(gpio::PortA, 1);
+    gpio.in_dir(gpio::PortE, 3);
+    gpio.in_dir(gpio::PortD, 16);
+    gpio.in_dir(gpio::PortC, 8);
+    gpio.in_dir(gpio::PortD, 6);
+    gpio.in_dir(gpio::PortD, 5);
+    gpio.in_dir(gpio::PortD, 7);
+    gpio.out_dir(gpio::PortD, 4);
+    gpio.out_dir(gpio::PortB, 1);
+    gpio.out_dir(gpio::PortB, 0);
+    gpio.out_dir(gpio::PortC, 9);
+    gpio.out_dir(gpio::PortE, 11);
+    gpio.out_dir(gpio::PortD, 3);
+    gpio.out_dir(gpio::PortB, 13);
+    gpio.out_dir(gpio::PortB, 12);
+    gpio.out_dir(gpio::PortA, 6);
+    gpio.out_dir(gpio::PortE, 7);
+    gpio.out_dir(gpio::PortD, 0);
+    gpio.out_dir(gpio::PortD, 1);
+    gpio.out_dir(gpio::PortD, 2);
+    gpio.out_dir(gpio::PortA, 7);
+    */
 
 	// initialize ADC driver
 	adc::ADC::ConstructStatic(NULL);
