@@ -69,25 +69,22 @@ int main() {
     SysTick_Config(TIMER_PERIOD);
     gpio.set(gpio::PortD, 16);
 
-    mc_clear_faults();
-    mc_torque_command(-1);
-
     // TODO - time main loop for VCU frequency
     while(1) {
-    	if(vcu.get_flag() == true) {
+    	if(vcu.flag == true) {
     		// read input signals to buffer
     		//vcu.input_map();
 
     	    // core logic
     	    vcu.motor_loop();
-    	    //vcu.shutdown_loop();
-    	    //vcu.redundancy_loop();
+    	    vcu.shutdown_loop();
+    	    vcu.redundancy_loop();
 
     	    // write output signals from buffer
     	    //vcu.output_map();
 
     	    // spinlock to synchronize thread
-    	    vcu.clear_flag();
+    	    vcu.flag = false;
     	}
     }
 
@@ -96,6 +93,6 @@ int main() {
 
 extern "C" {
 	void SysTick_Handler() {
-		vcu.set_flag();
+		vcu.flag = true;
 	}
 }

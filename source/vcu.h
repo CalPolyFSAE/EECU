@@ -13,12 +13,13 @@
 #define MC_CHARGE_TIME (1 * VCU_FREQUENCY)
 #define BATTERY_THRESHOLD 90
 
-#define TA ((0.05 * 4095) / 5)
 #define CA ((2.80 * 4095) / 5)
 #define BFA ((2.10 * 4095) / 5)
 #define BRA ((1.78 * 4095) / 5)
 #define BRAKE_MIN ((0.50 * 4095) / 5)
 #define BRAKE_MAX ((4.50 * 4095) / 5)
+#define THROTTLE_MIN ((0.05 * 4095) / 5)
+#define THROTTLE_MAX ((0.25 * 4095) / 5)
 
 enum INPUT {
 	MC_EN,					// GPIO E6
@@ -70,6 +71,8 @@ enum SIGNAL {
 };
 
 typedef enum STATE {
+	STANDBY_STATE,
+	DRIVING_STATE,
 	AIR_OFF_STATE,
 	PRECHARGE_STATE,
 	AIR_ON_STATE,
@@ -78,15 +81,10 @@ typedef enum STATE {
 } state_t;
 
 class VCU {
-private:
-	volatile bool flag;
-	state_t state;
-	uint32_t timer;
-
-
 public:
 	uint32_t input[INPUT_COUNT];
 	uint32_t output[OUTPUT_COUNT];
+	volatile bool flag;
 
 	VCU();
 
@@ -96,10 +94,6 @@ public:
 
 	void input_map();
 	void output_map();
-
-	bool get_flag();
-	void set_flag();
-	void clear_flag();
 
 	void input_print();
 	void output_print();

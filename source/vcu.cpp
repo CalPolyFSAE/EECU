@@ -10,7 +10,6 @@ using namespace BSP;
 // VCU class constructor
 VCU::VCU() {
 	flag = false;
-	state = AIR_OFF_STATE;
 
 	for(int i = 0; i < INPUT_COUNT; i++)
 		input[i] = LOW;
@@ -21,12 +20,59 @@ VCU::VCU() {
 
 // VCU motor loop
 void VCU::motor_loop() {
-	// TODO
-	mc_torque_command(10);
+	static state_t state = STANDBY_STATE;
+	static uint32_t timer = 0;
+
+	switch(state) {
+	case STANDBY_STATE:
+		mc_torque_command(-1);
+
+		if((input[MC_EN] == HIGH) && !input[MC_POST_FAULT] && !input[MC_RUN_FAULT] &&
+		   (((input[THROTTLE_1] + input[THROTTLE_2]) / 2) < THROTTLE_MIN) &&
+		   ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA)) &&
+		   ((input[BRAKE_FRONT] > BRAKE_MIN) && (input[BRAKE_FRONT] < BRAKE_MAX) && (input[BRAKE_REAR] > BRAKE_MIN) && (input[BRAKE_REAR] < BRAKE_MAX)) &&
+		   (output[AIR_POS] == HIGH) && (output[AIR_NEG] == HIGH)) {
+			state = DRIVING_STATE;
+			mc_clear_faults();
+			mc_torque_command(-1);
+			mc_torque_command(0);
+			output[RTDS] = HIGH;
+			timer = 0;
+		}
+
+		break;
+
+	case DRIVING_STATE:
+		if(timer > RTDS_TIME) {
+			output[RTDS] = LOW;
+			// TODO - convert throttle input to torque request
+			// TODO - power limiting
+			// TODO - traction control
+			mc_torque_command(10);
+		} else {
+			mc_torque_command(0);
+			timer++;
+		}
+
+		if((input[MC_EN] == LOW) || input[MC_POST_FAULT] || input[MC_RUN_FAULT] ||
+		((((input[THROTTLE_1] + input[THROTTLE_2]) / 2) > THROTTLE_MAX) && ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA))) ||
+		((input[BRAKE_FRONT] < BRAKE_MIN) || (input[BRAKE_FRONT] > BRAKE_MAX) || (input[BRAKE_REAR] < BRAKE_MIN) || (input[BRAKE_REAR] > BRAKE_MAX)) ||
+		(output[AIR_POS] == LOW) || (output[AIR_NEG] == LOW)) {
+			state = STANDBY_STATE;
+		}
+
+		break;
+
+	default:
+		break;
+	}
 }
 
 // VCU shutdown loop
 void VCU::shutdown_loop() {
+	static state_t state = AIR_OFF_STATE;
+	static uint32_t timer = 0;
+
 	switch(state) {
 	case AIR_OFF_STATE:
 		output[AIR_POS] = LOW;
@@ -49,10 +95,12 @@ void VCU::shutdown_loop() {
 		output[DCDC_DISABLE] = HIGH;
 		timer++;
 
-		if(((timer > ALLOWED_PRECHARGE_TIME) && (input[MC_VOLTAGE] < ((input[BMS_VOLTAGE] * BATTERY_THRESHOLD) / 100)) && (input[LATCH_SENSE] == LOW)) || (input[TS_RDY] == LOW)) {
+		if(((timer > ALLOWED_PRECHARGE_TIME) && (input[MC_VOLTAGE] < ((input[BMS_VOLTAGE] * BATTERY_THRESHOLD) / 100)) && (input[LATCH_SENSE] == LOW)) ||
+		   (input[TS_RDY] == LOW)) {
 			state = AIR_OFF_STATE;
 			output[PRECHARGE] = HIGH;
-		} else if((((timer > ALLOWED_PRECHARGE_TIME) && (input[MC_VOLTAGE] > ((input[BMS_VOLTAGE] * BATTERY_THRESHOLD) / 100))) || (input[LATCH_SENSE] == HIGH)) && (input[TS_RDY] == HIGH)) {
+		} else if((((timer > ALLOWED_PRECHARGE_TIME) && (input[MC_VOLTAGE] > ((input[BMS_VOLTAGE] * BATTERY_THRESHOLD) / 100))) || (input[LATCH_SENSE] == HIGH)) &&
+				  (input[TS_RDY] == HIGH)) {
 			state = AIR_ON_STATE;
 		}
 
@@ -102,12 +150,16 @@ void VCU::shutdown_loop() {
 		}
 
 		break;
+
+	default:
+		break;
 	}
 }
 
 // VCU redundancy loop
 void VCU::redundancy_loop() {
-	if(!((input[CURRENT_SENSE] > CA) && ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA))) && ((input[BRAKE_FRONT] > BRAKE_MIN) && (input[BRAKE_FRONT] < BRAKE_MAX) && (input[BRAKE_REAR] > BRAKE_MIN) && (input[BRAKE_REAR] < BRAKE_MAX))) {
+	if(!((input[CURRENT_SENSE] > CA) && ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA))) &&
+	   ((input[BRAKE_FRONT] > BRAKE_MIN) && (input[BRAKE_FRONT] < BRAKE_MAX) && (input[BRAKE_REAR] > BRAKE_MIN) && (input[BRAKE_REAR] < BRAKE_MAX))) {
 		input[BSPD_OK] = HIGH;
 	} else {
 		input[BSPD_OK] = LOW;
@@ -218,21 +270,6 @@ void VCU::output_map() {
     	gpio.set(gpio::PortA, 7);
     else
     	gpio.clear(gpio::PortA, 7);
-}
-
-// gets the VCU interrupt flag
-bool VCU::get_flag() {
-	return flag;
-}
-
-// sets the VCU interrupt flag
-void VCU::set_flag() {
-	flag = true;
-}
-
-// clears the VCU interrupt flag
-void VCU::clear_flag() {
-	flag = false;
 }
 
 // TODO - DEBUG print input buffer
