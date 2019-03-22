@@ -6,10 +6,10 @@
 #include "fsl_debug_console.h"
 
 #include "vcu.h"
-#include "gpio.h"
-#include "adc.h"
+#include "mc.h"
 #include "canlight.h"
-#include "motor_controller.h"
+#include "adc.h"
+#include "gpio.h"
 
 using namespace BSP;
 
@@ -62,46 +62,29 @@ int main() {
 	// initialize CAN driver
 	can::CANlight::ConstructStatic(&config);
 	can::CANlight &can = can::CANlight::StaticClass();
-	canx_config.baudRate = MOTOR_CONTROLLER_BAUD_RATE;
-	canx_config.callback = motor_controller_handler;
-	can.init(MOTOR_CONTROLLER_CAN_CHANNEL, &canx_config);
+	canx_config.baudRate = MC_BAUD_RATE;
+	canx_config.callback = mc_callback;
+	can.init(MC_CAN_CHANNEL, &canx_config);
 
     SysTick_Config(TIMER_PERIOD);
     gpio.set(gpio::PortD, 16);
 
-    motor_controller_clear_faults();
-    motor_controller_torque_command(-1);
+    mc_clear_faults();
+    mc_torque_command(-1);
 
-    uint32_t i = 0;
-
+    // TODO - time main loop for VCU frequency
     while(1) {
     	if(vcu.get_flag() == true) {
-    		/*
     		// read input signals to buffer
-    		vcu.input_map();
+    		//vcu.input_map();
 
     	    // core logic
     	    vcu.motor_loop();
-    	    vcu.shutdown_loop();
-    	    vcu.redundancy_loop();
+    	    //vcu.shutdown_loop();
+    	    //vcu.redundancy_loop();
 
     	    // write output signals from buffer
-    	    vcu.output_map();
-    	    */
-
-    		// DEBUG
-    		if(i >= VCU_FREQUENCY) {
-    			gpio.toggle(gpio::PortD, 15);
-    			PRINTF("MC POST_FAULT = 0x%08lX\n", vcu.input[MC_POST_FAULT]);
-    			PRINTF("MC RUN_FAULT = 0x%08lX\n", vcu.input[MC_RUN_FAULT]);
-    			PRINTF("MC STATE = 0x%04lX\n", vcu.input[MC_STATE]);
-    			PRINTF("\n");
-    			i = 0;
-    		} else {
-    			i++;
-    		}
-
-    		motor_controller_torque_command(10);
+    	    //vcu.output_map();
 
     	    // spinlock to synchronize thread
     	    vcu.clear_flag();

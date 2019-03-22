@@ -1,6 +1,7 @@
 #include "fsl_debug_console.h"
 
 #include "vcu.h"
+#include "mc.h"
 #include "gpio.h"
 #include "adc.h"
 
@@ -21,6 +22,7 @@ VCU::VCU() {
 // VCU motor loop
 void VCU::motor_loop() {
 	// TODO
+	mc_torque_command(10);
 }
 
 // VCU shutdown loop
@@ -105,10 +107,10 @@ void VCU::shutdown_loop() {
 
 // VCU redundancy loop
 void VCU::redundancy_loop() {
-	if(!((input[CURRENT_SENSE] > CA) && ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA))) && ((input[BRAKE_FRONT] > VOLTAGE_MIN) && (input[BRAKE_FRONT] < VOLTAGE_MAX) && (input[BRAKE_REAR] > VOLTAGE_MIN) && (input[BRAKE_REAR] < VOLTAGE_MAX))) {
-		VCU::input[BSPD_OK] = HIGH;
+	if(!((input[CURRENT_SENSE] > CA) && ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA))) && ((input[BRAKE_FRONT] > BRAKE_MIN) && (input[BRAKE_FRONT] < BRAKE_MAX) && (input[BRAKE_REAR] > BRAKE_MIN) && (input[BRAKE_REAR] < BRAKE_MAX))) {
+		input[BSPD_OK] = HIGH;
 	} else {
-		VCU::input[BSPD_OK] = LOW;
+		input[BSPD_OK] = LOW;
 	}
 
 	if(input[BSPD_OK] && input[IMD_OK] && input[BMS_OK]) {
@@ -220,26 +222,20 @@ void VCU::output_map() {
 
 // gets the VCU interrupt flag
 bool VCU::get_flag() {
-	return VCU::flag;
+	return flag;
 }
 
 // sets the VCU interrupt flag
 void VCU::set_flag() {
-	VCU::flag = true;
+	flag = true;
 }
 
 // clears the VCU interrupt flag
 void VCU::clear_flag() {
-	VCU::flag = false;
+	flag = false;
 }
 
-// gets the state of a VCU loop
-state_t VCU::get_state() {
-	return VCU::state;
-}
-
-
-// DEBUG - print input buffer
+// TODO - DEBUG print input buffer
 void VCU::input_print() {
 	PRINTF("-- VCU INPUTS ---------------------\n");
 	PRINTF("MC_EN = 0x%08lX\n", input[MC_EN]);
@@ -267,7 +263,7 @@ void VCU::input_print() {
 	PRINTF("-----------------------------------\n\n");
 }
 
-// DEBUG - print output buffer
+// TODO - DEBUG print output buffer
 void VCU::output_print() {
 	PRINTF("-- VCU OUTPUTS --------------------\n");
 	PRINTF("RTDS = 0x%08lX\n", output[RTDS]);

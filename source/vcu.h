@@ -1,5 +1,5 @@
-#ifndef VCU_H_
-#define VCU_H_
+#ifndef VCU_H
+#define VCU_H
 
 #include <stdint.h>
 
@@ -13,15 +13,14 @@
 #define MC_CHARGE_TIME (1 * VCU_FREQUENCY)
 #define BATTERY_THRESHOLD 90
 
-#define TA 41				// 0.05V
-#define CA 2293				// 2.80V
-#define BFA 1720			// 2.10V
-#define BRA 1458			// 1.78V
-#define VOLTAGE_MIN 410		// 0.50V
-#define VOLTAGE_MAX	3686	// 4.50V
+#define TA ((0.05 * 4095) / 5)
+#define CA ((2.80 * 4095) / 5)
+#define BFA ((2.10 * 4095) / 5)
+#define BRA ((1.78 * 4095) / 5)
+#define BRAKE_MIN ((0.50 * 4095) / 5)
+#define BRAKE_MAX ((4.50 * 4095) / 5)
 
 enum INPUT {
-	MC_STATE,				// CAN 0 - DEBUG
 	MC_EN,					// GPIO E6
 	MC_POST_FAULT,			// CAN 0
 	MC_RUN_FAULT,			// CAN 0
@@ -101,8 +100,6 @@ public:
 	bool get_flag();
 	void set_flag();
 	void clear_flag();
-
-	state_t get_state();
 
 	void input_print();
 	void output_print();

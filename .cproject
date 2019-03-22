@@ -603,7 +603,7 @@
 	<storageModule moduleId="com.crt.config">
 		<projectStorage>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;TargetConfig&gt;
-&lt;Properties property_3="NXP" property_4="MKE18F512xxx16" property_count="5" version="100200"/&gt;
+&lt;Properties property_3="NXP" property_4="MKE18F512xxx16" property_count="5" version="100300"/&gt;
 &lt;infoList vendor="NXP"&gt;
 &lt;info chip="MKE18F512xxx16" name="MKE18F512xxx16"&gt;
 &lt;chip&gt;
