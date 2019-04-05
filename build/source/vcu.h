@@ -15,11 +15,15 @@
 #define ALLOWED_PRECHARGE_TIME	SECONDS(4)
 #define MC_CHARGE_TIME			SECONDS(1)
 
-#define CA			VOLTS(2.80)
-#define BFA			VOLTS(2.10)
-#define BRA			VOLTS(1.78)
-#define BRAKE_MIN	VOLTS(0.50)
-#define BRAKE_MAX	VOLTS(4.50)
+#define CA					VOLTS(2.80)
+#define BFA					VOLTS(2.10)
+#define BRA					VOLTS(1.78)
+#define BRAKE_MIN			VOLTS(0.50)
+#define BRAKE_MAX			VOLTS(4.50)
+#define THROTTLE_POS_MIN	VOLTS(0.50)
+#define THROTTLE_POS_MAX	VOLTS(4.50)
+#define THROTTLE_NEG_MIN	VOLTS(0.50)
+#define THROTTLE_NEG_MAX	VOLTS(4.50)
 
 #define FAN_X1 35
 #define FAN_Y1 0
@@ -28,24 +32,21 @@
 #define FAN_GAIN ((FAN_Y2 - FAN_Y1) / (FAN_X2 - FAN_X1))
 #define FAN_OFFSET (((FAN_X1 * FAN_Y2) - (FAN_X2 * FAN_Y1)) / (FAN_X1 - FAN_X2))
 
-#define THROTTLE_MIN	5
-#define THROTTLE_MAX	25
-#define BATTERY_MIN		90
+#define THROTTLE_AVG_MIN	5
+#define THROTTLE_AVG_MAX	25
+#define BATTERY_MIN			90
 
 enum INPUT {
 	MC_EN,					// GPIO E6
 	MC_POST_FAULT,			// CAN 0
 	MC_RUN_FAULT,			// CAN 0
 	MC_VOLTAGE,				// CAN 0
-	MC_TACHOMETER,			// CAN 0
-	// TODO - convert input to percentage
 	THROTTLE_1,				// ADC 0.14
-	// TODO - convert input to percentage
 	THROTTLE_2,				// ADC 0.15
 	TS_RDY,					// GPIO E2
-	// TODO - implement logic in shutdown loop
 	TS_READY_SENSE,			// GPIO B6
 	TS_LIVE,				// GPIO B7
+	// TODO - put signal on CAN bus
 	LATCH_SENSE,			// GPIO A1
 	// TODO - read input from CAN bus
 	CHARGER_CONNECTED,		// CAN 1
@@ -53,6 +54,8 @@ enum INPUT {
 	BMS_VOLTAGE,			// CAN 1
 	// TODO - read input from CAN bus
 	BMS_TEMPERATURE,		// CAN 1
+	// TODO - read input from CAN bus
+	BMS_POWER,				// CAN 1
 	BMS_OK,					// GPIO E3
 	IMD_OK,					// GPIO D16
 	BSPD_OK,				// GPIO C8

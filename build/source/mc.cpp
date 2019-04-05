@@ -49,10 +49,6 @@ static void mc_receive_broadcast_message() {
 	can::CANlight::frame frame = can.readrx(MC_CAN_CHANNEL);
 
 	switch(frame.id) {
-	case MC_BROADCAST_MESSAGE_MOTOR_POSITION_INFORMATION:
-		vcu.input[MC_TACHOMETER] = (frame.data[3] << 8) | frame.data[2];
-		break;
-
 	case MC_BROADCAST_MESSAGE_VOLTAGE_INFORMATION:
 		vcu.input[MC_VOLTAGE] = (frame.data[1] << 8) | frame.data[0];
 		break;
@@ -60,6 +56,9 @@ static void mc_receive_broadcast_message() {
 	case MC_BROADCAST_MESSAGE_FAULT_CODES:
 		vcu.input[MC_POST_FAULT] = (frame.data[3] << 24) | (frame.data[2] << 16) | (frame.data[1] << 8) | frame.data[0];
 		vcu.input[MC_RUN_FAULT] = (frame.data[7] << 24) | (frame.data[6] << 16) | (frame.data[5] << 8) | frame.data[4];
+		break;
+
+	default:
 		break;
 	}
 }

@@ -4,9 +4,6 @@
 #include "pin_mux.h"
 #include "peripherals.h"
 
-// TODO - remove after debugging
-#include "fsl_debug_console.h"
-
 #include "vcu.h"
 #include "mc.h"
 #include "canlight.h"
@@ -17,11 +14,9 @@ using namespace BSP;
 
 VCU vcu;
 
-// TODO - move IO functions to seperate file
+// TODO - move IO functions to separate file
 void input_map();
 void output_map();
-void input_print();
-void output_print();
 
 int main() {
 	can::canlight_config config;
@@ -32,9 +27,6 @@ int main() {
 	BOARD_InitBootPins();
     BOARD_InitBootClocks();
     BOARD_InitBootPeripherals();
-
-    // TODO - remove after debugging
-    BOARD_InitDebugConsole();
 
     // initialize GPIO driver
     gpio::GPIO::ConstructStatic();
@@ -78,12 +70,14 @@ int main() {
 	can.init(MC_CAN_CHANNEL, &canx_config);
 
     SysTick_Config(TIMER_PERIOD);
-    gpio.set(gpio::PortD, 16);
+
 
 // --------------------------------------------------------
+    adc::ADC &adc = adc::ADC::ADC::StaticClass();
     mc_clear_faults();
     mc_torque_command(-1);
     mc_torque_command(0);
+    gpio.set(gpio::PortD, 16);
 // --------------------------------------------------------
 
     // TODO - time main loop to verify VCU frequency
@@ -103,6 +97,7 @@ int main() {
 			*/
 
 // --------------------------------------------------------
+    		gpio.toggle(gpio::PortD, 15);
     		mc_torque_command(1);
 // --------------------------------------------------------
 
@@ -208,53 +203,6 @@ void output_map() {
     	gpio.set(gpio::PortA, 7);
     else
     	gpio.clear(gpio::PortA, 7);
-}
-
-void input_print() {
-	PRINTF("-- VCU INPUTS ---------------------\n");
-	PRINTF("MC_EN = 0x%08lX\n", vcu.input[MC_EN]);
-	PRINTF("MC_POST_FAULT = 0x%08lX\n", vcu.input[MC_POST_FAULT]);
-	PRINTF("MC_RUN_FAULT = 0x%08lX\n", vcu.input[MC_RUN_FAULT]);
-	PRINTF("MC_VOLTAGE = 0x%08lX\n", vcu.input[MC_VOLTAGE]);
-	PRINTF("MC_TACHOMETER = 0x%08lX\n", vcu.input[MC_TACHOMETER]);
-	PRINTF("THROTTLE_1 = 0x%08lX\n", vcu.input[THROTTLE_1]);
-	PRINTF("THROTTLE_2 = 0x%08lX\n", vcu.input[THROTTLE_2]);
-	PRINTF("TS_RDY = 0x%08lX\n", vcu.input[TS_RDY]);
-	PRINTF("TS_READY_SENSE = 0x%08lX\n", vcu.input[TS_READY_SENSE]);
-	PRINTF("TS_LIVE = 0x%08lX\n", vcu.input[TS_LIVE]);
-	PRINTF("LATCH_SENSE = 0x%08lX\n", vcu.input[LATCH_SENSE]);
-	PRINTF("BMS_VOLTAGE = 0x%08lX\n", vcu.input[BMS_VOLTAGE]);
-	PRINTF("BMS_TEMPERATURE = 0x%08lX\n", vcu.input[BMS_TEMPERATURE]);
-	PRINTF("BMS_OK = 0x%08lX\n", vcu.input[BMS_OK]);
-	PRINTF("IMD_OK = 0x%08lX\n", vcu.input[IMD_OK]);
-	PRINTF("BSPD_OK = 0x%08lX\n", vcu.input[BSPD_OK]);
-	PRINTF("CURRENT_SENSE = 0x%08lX\n", vcu.input[CURRENT_SENSE]);
-	PRINTF("BRAKE_FRONT = 0x%08lX\n", vcu.input[BRAKE_FRONT]);
-	PRINTF("BRAKE_REAR = 0x%08lX\n", vcu.input[BRAKE_REAR]);
-	PRINTF("WHEEL_SPEED_FR = 0x%08lX\n", vcu.input[WHEEL_SPEED_FR]);
-	PRINTF("WHEEL_SPEED_FL = 0x%08lX\n", vcu.input[WHEEL_SPEED_FL]);
-	PRINTF("WHEEL_SPEED_RR = 0x%08lX\n", vcu.input[WHEEL_SPEED_RR]);
-	PRINTF("WHEEL_SPEED_RL = 0x%08lX\n", vcu.input[WHEEL_SPEED_RL]);
-	PRINTF("-----------------------------------\n\n");
-}
-
-void output_print() {
-	PRINTF("-- VCU OUTPUTS --------------------\n");
-	PRINTF("RTDS = 0x%08lX\n", vcu.output[RTDS]);
-	PRINTF("BRAKE_LIGHT = 0x%08lX\n", vcu.output[BRAKE_LIGHT]);
-	PRINTF("AIR_POS = 0x%08lX\n", vcu.output[AIR_POS]);
-	PRINTF("AIR_NEG = 0x%08lX\n", vcu.output[AIR_NEG]);
-	PRINTF("PUMP_EN = 0x%08lX\n", vcu.output[PUMP_EN]);
-	PRINTF("DCDC_DISABLE = 0x%08lX\n", vcu.output[DCDC_DISABLE]);
-	PRINTF("PRECHARGE = 0x%08lX\n", vcu.output[PRECHARGE]);
-	PRINTF("DISCHARGE = 0x%08lX\n", vcu.output[DISCHARGE]);
-	PRINTF("REDUNDANT_1 = 0x%08lX\n", vcu.output[REDUNDANT_1]);
-	PRINTF("REDUNDANT_2 = 0x%08lX\n", vcu.output[REDUNDANT_2]);
-	PRINTF("FAN_EN = 0x%08lX\n", vcu.output[FAN_EN]);
-	PRINTF("FAN_PWM = 0x%08lX\n", vcu.output[FAN_PWM]);
-	PRINTF("GENERAL_PURPOSE_1 = 0x%08lX\n", vcu.output[GENERAL_PURPOSE_1]);
-	PRINTF("GENERAL_PURPOSE_2 = 0x%08lX\n", vcu.output[GENERAL_PURPOSE_2]);
-    PRINTF("-----------------------------------\n\n");
 }
 
 extern "C" {

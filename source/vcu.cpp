@@ -18,19 +18,20 @@ VCU::VCU() {
 void VCU::motor_loop() {
 	static state_t state = STANDBY_STATE;
 	static uint32_t timer = 0;
+	uint32_t THROTTLE_AVG;
 
-	if((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA)) {
-		output[BRAKE_LIGHT] = HIGH;
-	} else {
-		output[BRAKE_LIGHT] = LOW;
-	}
+	// TODO - test signal calculation
+	THROTTLE_AVG = ((((input[THROTTLE_1] - THROTTLE_POS_MIN) * 50) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN)) -
+	               (((input[THROTTLE_2] - THROTTLE_NEG_MIN) * 50) / (THROTTLE_NEG_MAX - THROTTLE_NEG_MIN))) + 50;
+
+	// TODO - calculate wheel speeds
 
 	switch(state) {
 	case STANDBY_STATE:
 		mc_torque_command(-1);
 
 		if((input[MC_EN] == HIGH) && !input[MC_POST_FAULT] && !input[MC_RUN_FAULT] &&
-		   (((input[THROTTLE_1] + input[THROTTLE_2]) / 2) < THROTTLE_MIN) &&
+		   (THROTTLE_AVG < THROTTLE_AVG_MIN) &&
 		   ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA)) &&
 		   ((input[BRAKE_FRONT] > BRAKE_MIN) && (input[BRAKE_FRONT] < BRAKE_MAX) && (input[BRAKE_REAR] > BRAKE_MIN) && (input[BRAKE_REAR] < BRAKE_MAX)) &&
 		   (output[AIR_POS] == HIGH) && (output[AIR_NEG] == HIGH)) {
@@ -46,9 +47,9 @@ void VCU::motor_loop() {
 	case DRIVING_STATE:
 		if(timer > RTDS_TIME) {
 			output[RTDS] = LOW;
-			// TODO - convert throttle input to torque request
-			// TODO - power limiting
-			// TODO - traction control
+			// TODO - convert throttle input to torque request (torque map changes based on user input)
+			// TODO - power limiting (design control system)
+			// TODO - traction control (use front wheels as reference signal for back wheels)
 			mc_torque_command(1);
 		} else {
 			output[RTDS] = HIGH;
@@ -57,7 +58,7 @@ void VCU::motor_loop() {
 		}
 
 		if((input[MC_EN] == LOW) || input[MC_POST_FAULT] || input[MC_RUN_FAULT] ||
-		((((input[THROTTLE_1] + input[THROTTLE_2]) / 2) > THROTTLE_MAX) && ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA))) ||
+		((THROTTLE_AVG > THROTTLE_AVG_MAX) && ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA))) ||
 		((input[BRAKE_FRONT] < BRAKE_MIN) || (input[BRAKE_FRONT] > BRAKE_MAX) || (input[BRAKE_REAR] < BRAKE_MIN) || (input[BRAKE_REAR] > BRAKE_MAX)) ||
 		(output[AIR_POS] == LOW) || (output[AIR_NEG] == LOW)) {
 			state = STANDBY_STATE;
@@ -68,12 +69,19 @@ void VCU::motor_loop() {
 	default:
 		break;
 	}
+
+	if((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA)) {
+		output[BRAKE_LIGHT] = HIGH;
+	} else {
+		output[BRAKE_LIGHT] = LOW;
+	}
 }
 
 // VCU shutdown loop
 void VCU::shutdown_loop() {
 	static state_t state = AIR_OFF_STATE;
 	static uint32_t timer = 0;
+	// TODO - put signal on CAN bus
 	uint32_t PRECHARGE_FAILED;
 
 	switch(state) {
@@ -87,7 +95,7 @@ void VCU::shutdown_loop() {
 		output[FAN_EN] = LOW;
 		output[FAN_PWM] = 0;
 
-		if(input[TS_RDY] == HIGH) {
+		if(input[TS_READY_SENSE] == HIGH) {
 			state = PRECHARGE_STATE;
 			PRECHARGE_FAILED = LOW;
 			timer = 0;
@@ -106,11 +114,11 @@ void VCU::shutdown_loop() {
 		output[FAN_PWM] = 0;
 
 		if(((timer > ALLOWED_PRECHARGE_TIME) && (input[MC_VOLTAGE] < ((input[BMS_VOLTAGE] * BATTERY_MIN) / 100)) && (input[CHARGER_CONNECTED] == LOW)) ||
-		   (input[TS_RDY] == LOW)) {
+		   (input[TS_READY_SENSE] == LOW)) {
 			state = AIR_OFF_STATE;
 			PRECHARGE_FAILED = HIGH;
 		} else if((((timer > ALLOWED_PRECHARGE_TIME) && (input[MC_VOLTAGE] > ((input[BMS_VOLTAGE] * BATTERY_MIN) / 100))) || (input[CHARGER_CONNECTED] == HIGH)) &&
-				  (input[TS_RDY] == HIGH)) {
+				  (input[TS_READY_SENSE] == HIGH)) {
 			state = AIR_ON_STATE;
 		} else {
 			timer++;
@@ -128,12 +136,12 @@ void VCU::shutdown_loop() {
 		output[FAN_EN] = LOW;
 		output[FAN_PWM] = 0;
 
-		if(input[TS_RDY] == LOW) {
+		if(input[TS_READY_SENSE] == LOW) {
 			state = AIR_OFF_STATE;
-		} else if((input[CHARGER_CONNECTED] == LOW) && (input[TS_RDY] == HIGH)) {
+		} else if((input[CHARGER_CONNECTED] == LOW) && (input[TS_READY_SENSE] == HIGH)) {
 			state = READY_TO_DRIVE_STATE;
 			timer = 0;
-		} else if((input[CHARGER_CONNECTED] == HIGH) && (VCU::input[TS_RDY] == HIGH)) {
+		} else if((input[CHARGER_CONNECTED] == HIGH) && (VCU::input[TS_READY_SENSE] == HIGH)) {
 			state = READY_TO_CHARGE_STATE;
 		}
 
@@ -149,7 +157,7 @@ void VCU::shutdown_loop() {
 		output[FAN_EN] = LOW;
 		output[FAN_PWM] = 0;
 
-		if(input[TS_RDY] == LOW) {
+		if(input[TS_READY_SENSE] == LOW) {
 			state = AIR_OFF_STATE;
 		}
 
@@ -169,7 +177,7 @@ void VCU::shutdown_loop() {
 			timer++;
 		}
 
-		if(input[TS_RDY] == LOW) {
+		if(input[TS_READY_SENSE] == LOW) {
 			state = AIR_OFF_STATE;
 		}
 
@@ -178,8 +186,6 @@ void VCU::shutdown_loop() {
 	default:
 		break;
 	}
-
-	output[GENERAL_PURPOSE_1] = PRECHARGE_FAILED;
 }
 
 // VCU redundancy loop
