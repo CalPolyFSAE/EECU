@@ -36,76 +36,86 @@
 #define THROTTLE_AVG_MAX	25
 #define BATTERY_MIN			90
 
-enum INPUT {
-	MC_EN,					// GPIO E6
-	MC_POST_FAULT,			// CAN 0
-	MC_RUN_FAULT,			// CAN 0
-	MC_VOLTAGE,				// CAN 0
-	THROTTLE_1,				// ADC 0.14
-	THROTTLE_2,				// ADC 0.15
-	TS_RDY,					// GPIO E2
-	TS_READY_SENSE,			// GPIO B6
-	TS_LIVE,				// GPIO B7
-	// TODO - put signal on CAN bus
-	LATCH_SENSE,			// GPIO A1
-	// TODO - read input from CAN bus
-	CHARGER_CONNECTED,		// CAN 1
-	// TODO - read input from CAN bus
-	BMS_VOLTAGE,			// CAN 1
-	// TODO - read input from CAN bus
-	BMS_TEMPERATURE,		// CAN 1
-	// TODO - read input from CAN bus
-	BMS_POWER,				// CAN 1
-	BMS_OK,					// GPIO E3
-	IMD_OK,					// GPIO D16
-	BSPD_OK,				// GPIO C8
-	CURRENT_SENSE,			// ADC 0.6
-	BRAKE_FRONT,			// ADC 0.7
-	BRAKE_REAR,				// ADC 0.12
-	WHEEL_SPEED_FR,			// ADC 0.13
-	WHEEL_SPEED_FL,			// GPIO D6
-	WHEEL_SPEED_RR,			// GPIO D5
-	WHEEL_SPEED_RL,			// GPIO D7
-	INPUT_COUNT,			// 24 input signals
-};
-
-enum OUTPUT {
-	RTDS,					// GPIO D4
-	BRAKE_LIGHT,			// GPIO B1
-	AIR_POS,				// GPIO B0
-	AIR_NEG,				// GPIO C9
-	PUMP_EN,				// GPIO E11
-	DCDC_DISABLE,			// GPIO D3
-	PRECHARGE,				// GPIO B13
-	DISCHARGE,				// GPIO B12
-	REDUNDANT_1,			// GPIO A6
-	REDUNDANT_2,			// GPIO E7
-	FAN_EN,					// GPIO D0
-	FAN_PWM,				// GPIO D1
-	GENERAL_PURPOSE_1,		// GPIO D2
-	GENERAL_PURPOSE_2,		// GPIO A7
-	OUTPUT_COUNT,			// 14 output signals
-};
-
-enum SIGNAL {
-	LOW,
-	HIGH,
+enum DIGITAL {
+	DIGITAL_LOW,
+	DIGITAL_HIGH,
 };
 
 typedef enum STATE {
-	STANDBY_STATE,
-	DRIVING_STATE,
-	AIR_OFF_STATE,
-	PRECHARGE_STATE,
-	AIR_ON_STATE,
-	READY_TO_CHARGE_STATE,
-	READY_TO_DRIVE_STATE,
+	STATE_STANDBY,
+	STATE_DRIVING,
+	STATE_AIR_OFF,
+	STATE_PRECHARGE,
+	STATE_AIR_ON,
+	STATE_READY_TO_CHARGE,
+	STATE_READY_TO_DRIVE,
 } state_t;
+
+typedef struct {
+	uint8_t MC_EN;				// GPIO E6
+	uint32_t MC_POST_FAULT;		// CAN 1
+	uint32_t MC_RUN_FAULT;		// CAN 1
+	uint32_t MC_VOLTAGE;		// CAN 1
+	uint32_t MC_SPEED;			// CAN 1
+	uint32_t THROTTLE_1;		// ADC 0.14
+	uint32_t THROTTLE_2;		// ADC 0.15
+
+	// TODO - put signal on CAN bus
+	uint8_t LATCH_SENSE;		// GPIO A1
+
+	uint8_t TS_READY_SENSE;		// GPIO B6
+	uint8_t TS_RDY;				// GPIO E2
+	uint8_t TS_LIVE;			// GPIO B7
+
+	// TODO - read input from CAN bus
+	uint8_t CHARGER_CONNECTED;	// CAN 0
+
+	// TODO - read input from CAN bus
+	uint32_t BMS_VOLTAGE;		// CAN 0
+
+	// TODO - read input from CAN bus
+	uint32_t BMS_TEMPERATURE;	// CAN 0
+
+	// TODO - read input from CAN bus
+	uint32_t BMS_POWER;			// CAN 0
+
+	uint8_t BMS_OK;				// GPIO E3
+	uint8_t IMD_OK;				// GPIO D16
+	uint8_t BSPD_OK;			// GPIO C8
+	uint32_t CURRENT_SENSE;		// ADC 0.6
+	uint32_t BRAKE_FRONT;		// ADC 0.7
+	uint32_t BRAKE_REAR;		// ADC 0.12
+	uint32_t WHEEL_SPEED_FR;	// ADC 0.13
+	uint8_t WHEEL_SPEED_FL;		// GPIO D6
+	uint8_t WHEEL_SPEED_RR;		// GPIO D5
+	uint8_t WHEEL_SPEED_RL;		// GPIO D7
+} input_t;
+
+typedef struct {
+	uint8_t RTDS;				// GPIO D4
+	uint8_t BRAKE_LIGHT;		// GPIO B1
+	uint8_t AIR_POS;			// GPIO B0
+	uint8_t AIR_NEG;			// GPIO C9
+	uint8_t PUMP_EN;			// GPIO E11
+	uint8_t DCDC_DISABLE;		// GPIO D3
+	uint8_t PRECHARGE;			// GPIO B13
+	uint8_t DISCHARGE;			// GPIO B12
+
+	// TODO - put signal on CAN bus
+	uint8_t PRECHARGE_FAILED;	// CAN 0
+
+	uint8_t REDUNDANT_1;		// GPIO A6
+	uint8_t REDUNDANT_2;		// GPIO E7
+	uint8_t FAN_EN;				// GPIO D0
+	uint8_t FAN_PWM;			// GPIO D1
+	uint8_t GENERAL_PURPOSE_1;	// GPIO D2
+	uint8_t GENERAL_PURPOSE_2;	// GPIO A7
+} output_t;
 
 class VCU {
 public:
-	uint32_t input[INPUT_COUNT];
-	uint32_t output[OUTPUT_COUNT];
+	input_t input;
+	output_t output;
 	volatile bool flag;
 
 	VCU();

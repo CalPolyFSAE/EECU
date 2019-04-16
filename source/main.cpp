@@ -113,96 +113,43 @@ void input_map() {
 	gpio::GPIO &gpio = gpio::GPIO::StaticClass();
 	adc::ADC &adc = adc::ADC::ADC::StaticClass();
 
-	vcu.input[THROTTLE_1] = adc.read(ADC0, 14);
-	vcu.input[THROTTLE_2] = adc.read(ADC0, 15);
-	vcu.input[TS_RDY] = gpio.read(gpio::PortE, 2);
-	vcu.input[TS_READY_SENSE] = gpio.read(gpio::PortB, 6);
-	vcu.input[TS_LIVE] = gpio.read(gpio::PortB, 7);
-	vcu.input[LATCH_SENSE] = gpio.read(gpio::PortA, 1);
-	vcu.input[BMS_OK] = gpio.read(gpio::PortE, 3);
-	vcu.input[IMD_OK] = gpio.read(gpio::PortD, 16);
-	vcu.input[BSPD_OK] = gpio.read(gpio::PortC, 8);
-	vcu.input[CURRENT_SENSE] = adc.read(ADC0, 6);
-	vcu.input[BRAKE_FRONT] = adc.read(ADC0, 7);
-	vcu.input[BRAKE_REAR] = adc.read(ADC0, 12);
-	vcu.input[WHEEL_SPEED_FR] = adc.read(ADC0, 13);
-	vcu.input[WHEEL_SPEED_FL] = gpio.read(gpio::PortD, 6);
-	vcu.input[WHEEL_SPEED_RR] = gpio.read(gpio::PortD, 5);
-	vcu.input[WHEEL_SPEED_RL] = gpio.read(gpio::PortD, 7);
+	vcu.input.THROTTLE_1 = adc.read(ADC0, 14);
+	vcu.input.THROTTLE_2 = adc.read(ADC0, 15);
+	vcu.input.LATCH_SENSE = gpio.read(gpio::PortA, 1);
+	vcu.input.TS_READY_SENSE = gpio.read(gpio::PortB, 6);
+	vcu.input.TS_RDY = gpio.read(gpio::PortE, 2);
+	vcu.input.TS_LIVE = gpio.read(gpio::PortB, 7);
+	vcu.input.BMS_OK = gpio.read(gpio::PortE, 3);
+	vcu.input.IMD_OK = gpio.read(gpio::PortD, 16);
+	vcu.input.BSPD_OK = gpio.read(gpio::PortC, 8);
+	vcu.input.CURRENT_SENSE = adc.read(ADC0, 6);
+	vcu.input.BRAKE_FRONT = adc.read(ADC0, 7);
+	vcu.input.BRAKE_REAR = adc.read(ADC0, 12);
+	vcu.input.WHEEL_SPEED_FR = adc.read(ADC0, 13);
+	vcu.input.WHEEL_SPEED_FL = gpio.read(gpio::PortD, 6);
+	vcu.input.WHEEL_SPEED_RR = gpio.read(gpio::PortD, 5);
+	vcu.input.WHEEL_SPEED_RL = gpio.read(gpio::PortD, 7);
 }
 
 void output_map() {
 	gpio::GPIO &gpio = gpio::GPIO::StaticClass();
 
-    if(vcu.output[RTDS] == HIGH)
-    	gpio.set(gpio::PortD, 4);
-    else
-    	gpio.clear(gpio::PortD, 4);
+    vcu.output.RTDS ? gpio.set(gpio::PortD, 4) : gpio.clear(gpio::PortD, 4);
+    vcu.output.BRAKE_LIGHT ? gpio.set(gpio::PortB, 1) : gpio.clear(gpio::PortB, 1);
+    vcu.output.AIR_POS ? gpio.set(gpio::PortB, 0) : gpio.clear(gpio::PortB, 0);
+    vcu.output.AIR_NEG ? gpio.set(gpio::PortC, 9) : gpio.clear(gpio::PortC, 9);
+    vcu.output.PUMP_EN ? gpio.set(gpio::PortE, 11) : gpio.clear(gpio::PortE, 11);
+    vcu.output.DCDC_DISABLE ? gpio.set(gpio::PortD, 13) : gpio.clear(gpio::PortD, 13);
+    vcu.output.PRECHARGE ? gpio.set(gpio::PortB, 13) : gpio.clear(gpio::PortB, 13);
+    vcu.output.DISCHARGE ? gpio.set(gpio::PortB, 12) : gpio.clear(gpio::PortB, 12);
+    vcu.output.REDUNDANT_1 ? gpio.set(gpio::PortA, 6) : gpio.clear(gpio::PortA, 6);
+    vcu.output.REDUNDANT_2 ? gpio.set(gpio::PortE, 7) : gpio.clear(gpio::PortE, 7);
+    vcu.output.FAN_EN ? gpio.set(gpio::PortD, 0) : gpio.clear(gpio::PortD, 0);
+    vcu.output.GENERAL_PURPOSE_1 ? gpio.set(gpio::PortD, 2) : gpio.clear(gpio::PortD, 2);
+    vcu.output.GENERAL_PURPOSE_2 ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
 
-    if(vcu.output[BRAKE_LIGHT] == HIGH)
-    	gpio.set(gpio::PortB, 1);
-    else
-    	gpio.clear(gpio::PortB, 1);
-
-    if(vcu.output[AIR_POS] == HIGH)
-    	gpio.set(gpio::PortB, 0);
-    else
-    	gpio.clear(gpio::PortB, 0);
-
-    if(vcu.output[AIR_NEG] == HIGH)
-    	gpio.set(gpio::PortC, 9);
-    else
-    	gpio.clear(gpio::PortC, 9);
-
-    if(vcu.output[PUMP_EN] == HIGH)
-    	gpio.set(gpio::PortE, 11);
-    else
-    	gpio.clear(gpio::PortE, 11);
-
-    if(vcu.output[DCDC_DISABLE] == HIGH)
-    	gpio.set(gpio::PortD, 13);
-    else
-    	gpio.clear(gpio::PortD, 13);
-
-    if(vcu.output[PRECHARGE] == HIGH)
-    	gpio.set(gpio::PortB, 13);
-    else
-    	gpio.clear(gpio::PortB, 13);
-
-    if(vcu.output[DISCHARGE] == HIGH)
-    	gpio.set(gpio::PortB, 12);
-    else
-    	gpio.clear(gpio::PortB, 12);
-
-    if(vcu.output[REDUNDANT_1] == HIGH)
-    	gpio.set(gpio::PortA, 6);
-    else
-    	gpio.clear(gpio::PortA, 6);
-
-    if(vcu.output[REDUNDANT_2] == HIGH)
-    	gpio.set(gpio::PortE, 7);
-    else
-    	gpio.clear(gpio::PortE, 7);
-
-    if(vcu.output[FAN_EN] == HIGH)
-    	gpio.set(gpio::PortD, 0);
-    else
-    	gpio.clear(gpio::PortD, 0);
-
-    if(vcu.output[FAN_PWM] == HIGH)
-    	gpio.set(gpio::PortD, 1);
-    else
-    	gpio.clear(gpio::PortD, 1);
-
-    if(vcu.output[GENERAL_PURPOSE_1] == HIGH)
-    	gpio.set(gpio::PortD, 2);
-    else
-    	gpio.clear(gpio::PortD, 2);
-
-    if(vcu.output[GENERAL_PURPOSE_2] == HIGH)
-    	gpio.set(gpio::PortA, 7);
-    else
-    	gpio.clear(gpio::PortA, 7);
+    // TODO - create PWM signal
+    vcu.output.FAN_PWM ? gpio.set(gpio::PortD, 1) : gpio.clear(gpio::PortD, 1);
 }
 
 extern "C" {

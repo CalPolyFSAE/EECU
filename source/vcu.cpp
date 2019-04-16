@@ -1,41 +1,34 @@
+#include <string.h>
+
 #include "vcu.h"
 #include "mc.h"
 
 // VCU class constructor
 VCU::VCU() {
-	for(int i = 0; i < INPUT_COUNT; i++) {
-		input[i] = LOW;
-	}
-
-	for(int i = 0; i < OUTPUT_COUNT; i++) {
-		output[i] = LOW;
-	}
-
+	memset(&input, 0, sizeof(input));
+	memset(&output, 0, sizeof(input));
 	flag = false;
 }
 
 // VCU motor loop
 void VCU::motor_loop() {
-	static state_t state = STANDBY_STATE;
+	static state_t state = STATE_STANDBY;
 	static uint32_t timer = 0;
 	uint32_t THROTTLE_AVG;
 
-	// TODO - test signal calculation
-	THROTTLE_AVG = ((((input[THROTTLE_1] - THROTTLE_POS_MIN) * 50) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN)) -
-	               (((input[THROTTLE_2] - THROTTLE_NEG_MIN) * 50) / (THROTTLE_NEG_MAX - THROTTLE_NEG_MIN))) + 50;
+	THROTTLE_AVG = ((((input.THROTTLE_1 - THROTTLE_POS_MIN) * 50) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN)) -
+	               (((input.THROTTLE_2 - THROTTLE_NEG_MIN) * 50) / (THROTTLE_NEG_MAX - THROTTLE_NEG_MIN))) + 50;
 
 	// TODO - calculate wheel speeds
 
 	switch(state) {
-	case STANDBY_STATE:
+	case STATE_STANDBY:
 		mc_torque_command(-1);
 
-		if((input[MC_EN] == HIGH) && !input[MC_POST_FAULT] && !input[MC_RUN_FAULT] &&
-		   (THROTTLE_AVG < THROTTLE_AVG_MIN) &&
-		   ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA)) &&
-		   ((input[BRAKE_FRONT] > BRAKE_MIN) && (input[BRAKE_FRONT] < BRAKE_MAX) && (input[BRAKE_REAR] > BRAKE_MIN) && (input[BRAKE_REAR] < BRAKE_MAX)) &&
-		   (output[AIR_POS] == HIGH) && (output[AIR_NEG] == HIGH)) {
-			state = DRIVING_STATE;
+		if((input.MC_EN == DIGITAL_HIGH) && !input.MC_POST_FAULT && !input.MC_RUN_FAULT && (THROTTLE_AVG < THROTTLE_AVG_MIN) &&
+				(output.AIR_POS == DIGITAL_HIGH) && (output.AIR_NEG == DIGITAL_HIGH) && ((input.BRAKE_FRONT > BFA) || (input.BRAKE_REAR > BRA)) &&
+				((input.BRAKE_FRONT > BRAKE_MIN) && (input.BRAKE_FRONT < BRAKE_MAX) && (input.BRAKE_REAR > BRAKE_MIN) && (input.BRAKE_REAR < BRAKE_MAX))) {
+			state = STATE_DRIVING;
 			mc_clear_faults();
 			mc_torque_command(-1);
 			mc_torque_command(0);
@@ -44,24 +37,23 @@ void VCU::motor_loop() {
 
 		break;
 
-	case DRIVING_STATE:
+	case STATE_DRIVING:
 		if(timer > RTDS_TIME) {
-			output[RTDS] = LOW;
+			output.RTDS = DIGITAL_LOW;
 			// TODO - convert throttle input to torque request (torque map changes based on user input)
 			// TODO - power limiting (design control system)
 			// TODO - traction control (use front wheels as reference signal for back wheels)
 			mc_torque_command(1);
 		} else {
-			output[RTDS] = HIGH;
+			output.RTDS = DIGITAL_HIGH;
 			mc_torque_command(0);
 			timer++;
 		}
 
-		if((input[MC_EN] == LOW) || input[MC_POST_FAULT] || input[MC_RUN_FAULT] ||
-		((THROTTLE_AVG > THROTTLE_AVG_MAX) && ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA))) ||
-		((input[BRAKE_FRONT] < BRAKE_MIN) || (input[BRAKE_FRONT] > BRAKE_MAX) || (input[BRAKE_REAR] < BRAKE_MIN) || (input[BRAKE_REAR] > BRAKE_MAX)) ||
-		(output[AIR_POS] == LOW) || (output[AIR_NEG] == LOW)) {
-			state = STANDBY_STATE;
+		if((input.MC_EN == DIGITAL_LOW) || input.MC_POST_FAULT || input.MC_RUN_FAULT || (output.AIR_POS == DIGITAL_LOW) || (output.AIR_NEG == DIGITAL_LOW) ||
+				((THROTTLE_AVG > THROTTLE_AVG_MAX) && ((input.BRAKE_FRONT > BFA) || (input.BRAKE_REAR > BRA))) ||
+				((input.BRAKE_FRONT < BRAKE_MIN) || (input.BRAKE_FRONT > BRAKE_MAX) || (input.BRAKE_REAR < BRAKE_MIN) || (input.BRAKE_REAR > BRAKE_MAX))) {
+			state = STATE_STANDBY;
 		}
 
 		break;
@@ -70,115 +62,113 @@ void VCU::motor_loop() {
 		break;
 	}
 
-	if((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA)) {
-		output[BRAKE_LIGHT] = HIGH;
+	if((input.BRAKE_FRONT > BFA) || (input.BRAKE_REAR > BRA)) {
+		output.BRAKE_LIGHT = DIGITAL_HIGH;
 	} else {
-		output[BRAKE_LIGHT] = LOW;
+		output.BRAKE_LIGHT = DIGITAL_LOW;
 	}
 }
 
 // VCU shutdown loop
 void VCU::shutdown_loop() {
-	static state_t state = AIR_OFF_STATE;
+	static state_t state = STATE_AIR_OFF;
 	static uint32_t timer = 0;
-	// TODO - put signal on CAN bus
-	uint32_t PRECHARGE_FAILED;
 
 	switch(state) {
-	case AIR_OFF_STATE:
-		output[AIR_POS] = LOW;
-		output[AIR_NEG] = LOW;
-		output[PUMP_EN] = LOW;
-		output[DCDC_DISABLE] = HIGH;
-		output[PRECHARGE] = LOW;
-		output[DISCHARGE] = LOW;
-		output[FAN_EN] = LOW;
-		output[FAN_PWM] = 0;
+	case STATE_AIR_OFF:
+		output.AIR_POS = DIGITAL_LOW;
+		output.AIR_NEG = DIGITAL_LOW;
+		output.PUMP_EN = DIGITAL_LOW;
+		output.DCDC_DISABLE = DIGITAL_HIGH;
+		output.PRECHARGE = DIGITAL_LOW;
+		output.DISCHARGE = DIGITAL_LOW;
+		output.FAN_EN = DIGITAL_LOW;
+		output.FAN_PWM = 0;
 
-		if(input[TS_READY_SENSE] == HIGH) {
-			state = PRECHARGE_STATE;
-			PRECHARGE_FAILED = LOW;
+		if(input.TS_READY_SENSE == DIGITAL_HIGH) {
+			state = STATE_PRECHARGE;
+			output.PRECHARGE_FAILED = DIGITAL_LOW;
 			timer = 0;
 		}
 
 		break;
 
-	case PRECHARGE_STATE:
-		output[AIR_POS] = LOW;
-		output[AIR_NEG] = HIGH;
-		output[PUMP_EN] = LOW;
-		output[DCDC_DISABLE] = HIGH;
-		output[PRECHARGE] = HIGH;
-		output[DISCHARGE] = HIGH;
-		output[FAN_EN] = LOW;
-		output[FAN_PWM] = 0;
+	case STATE_PRECHARGE:
+		output.AIR_POS = DIGITAL_LOW;
+		output.AIR_NEG = DIGITAL_HIGH;
+		output.PUMP_EN = DIGITAL_LOW;
+		output.DCDC_DISABLE = DIGITAL_HIGH;
+		output.PRECHARGE = DIGITAL_HIGH;
+		output.DISCHARGE = DIGITAL_HIGH;
+		output.FAN_EN = DIGITAL_LOW;
+		output.FAN_PWM = 0;
 
-		if(((timer > ALLOWED_PRECHARGE_TIME) && (input[MC_VOLTAGE] < ((input[BMS_VOLTAGE] * BATTERY_MIN) / 100)) && (input[CHARGER_CONNECTED] == LOW)) ||
-		   (input[TS_READY_SENSE] == LOW)) {
-			state = AIR_OFF_STATE;
-			PRECHARGE_FAILED = HIGH;
-		} else if((((timer > ALLOWED_PRECHARGE_TIME) && (input[MC_VOLTAGE] > ((input[BMS_VOLTAGE] * BATTERY_MIN) / 100))) || (input[CHARGER_CONNECTED] == HIGH)) &&
-				  (input[TS_READY_SENSE] == HIGH)) {
-			state = AIR_ON_STATE;
+		if(((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE < ((input.BMS_VOLTAGE * BATTERY_MIN) / 100)) && (input.CHARGER_CONNECTED == DIGITAL_LOW)) ||
+				(input.TS_READY_SENSE == DIGITAL_LOW)) {
+			state = STATE_AIR_OFF;
+			output.PRECHARGE_FAILED = DIGITAL_HIGH;
+		} else if((((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE > ((input.BMS_VOLTAGE * BATTERY_MIN) / 100))) || (input.CHARGER_CONNECTED == DIGITAL_HIGH)) &&
+				(input.TS_READY_SENSE == DIGITAL_HIGH)) {
+			state = STATE_AIR_ON;
 		} else {
 			timer++;
 		}
 
 		break;
 
-	case AIR_ON_STATE:
-		output[AIR_POS] = HIGH;
-		output[AIR_NEG] = HIGH;
-		output[PUMP_EN] = LOW;
-		output[DCDC_DISABLE] = HIGH;
-		output[PRECHARGE] = LOW;
-		output[DISCHARGE] = HIGH;
-		output[FAN_EN] = LOW;
-		output[FAN_PWM] = 0;
+	case STATE_AIR_ON:
+		output.AIR_POS = DIGITAL_HIGH;
+		output.AIR_NEG = DIGITAL_HIGH;
+		output.PUMP_EN = DIGITAL_LOW;
+		output.DCDC_DISABLE = DIGITAL_HIGH;
+		output.PRECHARGE = DIGITAL_LOW;
+		output.DISCHARGE = DIGITAL_HIGH;
+		output.FAN_EN = DIGITAL_LOW;
+		output.FAN_PWM = 0;
 
-		if(input[TS_READY_SENSE] == LOW) {
-			state = AIR_OFF_STATE;
-		} else if((input[CHARGER_CONNECTED] == LOW) && (input[TS_READY_SENSE] == HIGH)) {
-			state = READY_TO_DRIVE_STATE;
+		if(input.TS_READY_SENSE == DIGITAL_LOW) {
+			state = STATE_AIR_OFF;
+		} else if((input.CHARGER_CONNECTED == DIGITAL_LOW) && (input.TS_READY_SENSE == DIGITAL_HIGH)) {
+			state = STATE_READY_TO_DRIVE;
 			timer = 0;
-		} else if((input[CHARGER_CONNECTED] == HIGH) && (VCU::input[TS_READY_SENSE] == HIGH)) {
-			state = READY_TO_CHARGE_STATE;
+		} else if((input.CHARGER_CONNECTED == DIGITAL_HIGH) && (input.TS_READY_SENSE == DIGITAL_HIGH)) {
+			state = STATE_READY_TO_CHARGE;
 		}
 
 		break;
 
-	case READY_TO_CHARGE_STATE:
-		output[AIR_POS] = HIGH;
-		output[AIR_NEG] = HIGH;
-		output[PUMP_EN] = LOW;
-		output[DCDC_DISABLE] = HIGH;
-		output[PRECHARGE] = LOW;
-		output[DISCHARGE] = HIGH;
-		output[FAN_EN] = LOW;
-		output[FAN_PWM] = 0;
+	case STATE_READY_TO_CHARGE:
+		output.AIR_POS = DIGITAL_HIGH;
+		output.AIR_NEG = DIGITAL_HIGH;
+		output.PUMP_EN = DIGITAL_LOW;
+		output.DCDC_DISABLE = DIGITAL_HIGH;
+		output.PRECHARGE = DIGITAL_LOW;
+		output.DISCHARGE = DIGITAL_HIGH;
+		output.FAN_EN = DIGITAL_LOW;
+		output.FAN_PWM = 0;
 
-		if(input[TS_READY_SENSE] == LOW) {
-			state = AIR_OFF_STATE;
+		if(input.TS_READY_SENSE == DIGITAL_LOW) {
+			state = STATE_AIR_OFF;
 		}
 
 		break;
 
-	case READY_TO_DRIVE_STATE:
+	case STATE_READY_TO_DRIVE:
 		if(timer > MC_CHARGE_TIME) {
-			output[AIR_POS] = HIGH;
-			output[AIR_NEG] = HIGH;
-			output[PUMP_EN] = HIGH;
-			output[DCDC_DISABLE] = LOW;
-			output[PRECHARGE] = LOW;
-			output[DISCHARGE] = HIGH;
-			output[FAN_EN] = LOW;
-			output[FAN_PWM] = (FAN_GAIN * input[BMS_TEMPERATURE]) + FAN_OFFSET;
+			output.AIR_POS = DIGITAL_HIGH;
+			output.AIR_NEG = DIGITAL_HIGH;
+			output.PUMP_EN = DIGITAL_HIGH;
+			output.DCDC_DISABLE = DIGITAL_LOW;
+			output.PRECHARGE = DIGITAL_LOW;
+			output.DISCHARGE = DIGITAL_HIGH;
+			output.FAN_EN = DIGITAL_LOW;
+			output.FAN_PWM = (FAN_GAIN * input.BMS_TEMPERATURE) + FAN_OFFSET;
 		} else {
 			timer++;
 		}
 
-		if(input[TS_READY_SENSE] == LOW) {
-			state = AIR_OFF_STATE;
+		if(input.TS_READY_SENSE == DIGITAL_LOW) {
+			state = STATE_AIR_OFF;
 		}
 
 		break;
@@ -192,18 +182,18 @@ void VCU::shutdown_loop() {
 void VCU::redundancy_loop() {
 	uint32_t BSPD_OK;
 
-	if(!((input[CURRENT_SENSE] > CA) && ((input[BRAKE_FRONT] > BFA) || (input[BRAKE_REAR] > BRA))) &&
-	   ((input[BRAKE_FRONT] > BRAKE_MIN) && (input[BRAKE_FRONT] < BRAKE_MAX) && (input[BRAKE_REAR] > BRAKE_MIN) && (input[BRAKE_REAR] < BRAKE_MAX))) {
-		BSPD_OK = HIGH;
+	if(!((input.CURRENT_SENSE > CA) && ((input.BRAKE_FRONT > BFA) || (input.BRAKE_REAR > BRA))) &&
+			((input.BRAKE_FRONT > BRAKE_MIN) && (input.BRAKE_FRONT < BRAKE_MAX) && (input.BRAKE_REAR > BRAKE_MIN) && (input.BRAKE_REAR < BRAKE_MAX))) {
+		BSPD_OK = DIGITAL_HIGH;
 	} else {
-		BSPD_OK = LOW;
+		BSPD_OK = DIGITAL_LOW;
 	}
 
-	if(BSPD_OK && input[IMD_OK] && input[BMS_OK]) {
-		output[REDUNDANT_1] = HIGH;
-		output[REDUNDANT_2] = HIGH;
+	if(BSPD_OK && input.IMD_OK && input.BMS_OK) {
+		output.REDUNDANT_1 = DIGITAL_HIGH;
+		output.REDUNDANT_2 = DIGITAL_HIGH;
 	} else {
-		output[REDUNDANT_1] = LOW;
-		output[REDUNDANT_2] = LOW;
+		output.REDUNDANT_1 = DIGITAL_LOW;
+		output.REDUNDANT_2 = DIGITAL_LOW;
 	}
 }
