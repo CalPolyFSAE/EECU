@@ -3,10 +3,6 @@
 
 #include <stdint.h>
 
-// motor controller CAN settings
-#define MC_CAN_CHANNEL	1
-#define MC_BAUD_RATE	500000
-
 // broadcast message addresses
 #define MC_BROADCAST_MESSAGE_TEMPERATURES_1					0x0A0
 #define MC_BROADCAST_MESSAGE_TEMPERATURES_2					0x0A1
@@ -180,7 +176,7 @@
 #define MC_EEPROM_PARAMETER_BRAKE_INPUT_BYPASSED			199
 
 // function prototypes
-void mc_torque_command(int16_t torque);
+void mc_torque_request(int16_t torque);
 void mc_clear_faults();
 void mc_callback();
 

@@ -55,8 +55,9 @@ typedef struct {
 	uint8_t MC_EN;				// GPIO E6
 	uint32_t MC_POST_FAULT;		// CAN 1
 	uint32_t MC_RUN_FAULT;		// CAN 1
-	uint32_t MC_VOLTAGE;		// CAN 1
-	uint32_t MC_SPEED;			// CAN 1
+	int16_t MC_CURRENT;			// CAN 1
+	int16_t MC_VOLTAGE;			// CAN 1
+	int16_t MC_SPEED;			// CAN 1
 	uint32_t THROTTLE_1;		// ADC 0.14
 	uint32_t THROTTLE_2;		// ADC 0.15
 
@@ -75,9 +76,6 @@ typedef struct {
 
 	// TODO - read input from CAN bus
 	uint32_t BMS_TEMPERATURE;	// CAN 0
-
-	// TODO - read input from CAN bus
-	uint32_t BMS_POWER;			// CAN 0
 
 	uint8_t BMS_OK;				// GPIO E3
 	uint8_t IMD_OK;				// GPIO D16

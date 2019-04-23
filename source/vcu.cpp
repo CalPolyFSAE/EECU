@@ -23,15 +23,15 @@ void VCU::motor_loop() {
 
 	switch(state) {
 	case STATE_STANDBY:
-		mc_torque_command(-1);
+		mc_torque_request(-1);
 
 		if((input.MC_EN == DIGITAL_HIGH) && !input.MC_POST_FAULT && !input.MC_RUN_FAULT && (THROTTLE_AVG < THROTTLE_AVG_MIN) &&
 				(output.AIR_POS == DIGITAL_HIGH) && (output.AIR_NEG == DIGITAL_HIGH) && ((input.BRAKE_FRONT > BFA) || (input.BRAKE_REAR > BRA)) &&
 				((input.BRAKE_FRONT > BRAKE_MIN) && (input.BRAKE_FRONT < BRAKE_MAX) && (input.BRAKE_REAR > BRAKE_MIN) && (input.BRAKE_REAR < BRAKE_MAX))) {
 			state = STATE_DRIVING;
 			mc_clear_faults();
-			mc_torque_command(-1);
-			mc_torque_command(0);
+			mc_torque_request(-1);
+			mc_torque_request(0);
 			timer = 0;
 		}
 
@@ -40,13 +40,13 @@ void VCU::motor_loop() {
 	case STATE_DRIVING:
 		if(timer > RTDS_TIME) {
 			output.RTDS = DIGITAL_LOW;
-			// TODO - convert throttle input to torque request (torque map changes based on user input)
-			// TODO - power limiting (design control system)
-			// TODO - traction control (use front wheels as reference signal for back wheels)
-			mc_torque_command(1);
+			// TODO - convert throttle input to torque request
+			// TODO - power limiting
+			// TODO - traction control
+			mc_torque_request(0);
 		} else {
 			output.RTDS = DIGITAL_HIGH;
-			mc_torque_command(0);
+			mc_torque_request(0);
 			timer++;
 		}
 
