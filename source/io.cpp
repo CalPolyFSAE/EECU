@@ -16,13 +16,12 @@ void init_io() {
 
     // initialize GPIO driver
     gpio::GPIO::ConstructStatic();
-    /*
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
     gpio.in_dir(gpio::PortE, 6);
-    gpio.in_dir(gpio::PortE, 2);
-    gpio.in_dir(gpio::PortB, 6);
-    gpio.in_dir(gpio::PortB, 7);
     gpio.in_dir(gpio::PortA, 1);
+    gpio.in_dir(gpio::PortB, 6);
+    gpio.in_dir(gpio::PortE, 2);
+    gpio.in_dir(gpio::PortB, 7);
     gpio.in_dir(gpio::PortE, 3);
     gpio.in_dir(gpio::PortD, 16);
     gpio.in_dir(gpio::PortC, 8);
@@ -37,13 +36,12 @@ void init_io() {
     gpio.out_dir(gpio::PortD, 3);
     gpio.out_dir(gpio::PortB, 13);
     gpio.out_dir(gpio::PortB, 12);
-    gpio.out_dir(gpio::PortA, 6);
     gpio.out_dir(gpio::PortE, 7);
+    gpio.out_dir(gpio::PortA, 6);
     gpio.out_dir(gpio::PortD, 0);
     gpio.out_dir(gpio::PortD, 1);
-    gpio.out_dir(gpio::PortD, 2);
     gpio.out_dir(gpio::PortA, 7);
-    */
+    gpio.out_dir(gpio::PortD, 2);
 
 	// initialize ADC driver
 	adc::ADC::ConstructStatic(NULL);
@@ -51,12 +49,15 @@ void init_io() {
 	// initialize CAN driver
 	can::CANlight::ConstructStatic(&config);
 	can::CANlight &can = can::CANlight::StaticClass();
-	canx_config.baudRate = IO_CAN_BAUD_RATE;
-	canx_config.callback = io_callback;
-	can.init(IO_CAN_CHANNEL, &canx_config);
+
 	canx_config.baudRate = MC_CAN_BAUD_RATE;
 	canx_config.callback = mc_callback;
 	can.init(MC_CAN_CHANNEL, &canx_config);
+
+	//canx_config.baudRate = IO_CAN_BAUD_RATE;
+	//canx_config.callback = io_callback;
+	//can.init(IO_CAN_CHANNEL, &canx_config);
+
 }
 
 // reads VCU input signals from GPIO and ADC pins
@@ -94,11 +95,11 @@ void output_map() {
     vcu.output.DCDC_DISABLE ? gpio.set(gpio::PortD, 13) : gpio.clear(gpio::PortD, 13);
     vcu.output.PRECHARGE ? gpio.set(gpio::PortB, 13) : gpio.clear(gpio::PortB, 13);
     vcu.output.DISCHARGE ? gpio.set(gpio::PortB, 12) : gpio.clear(gpio::PortB, 12);
-    vcu.output.REDUNDANT_1 ? gpio.set(gpio::PortA, 6) : gpio.clear(gpio::PortA, 6);
-    vcu.output.REDUNDANT_2 ? gpio.set(gpio::PortE, 7) : gpio.clear(gpio::PortE, 7);
+    vcu.output.REDUNDANT_1 ? gpio.set(gpio::PortE, 7) : gpio.clear(gpio::PortE, 7);
+    vcu.output.REDUNDANT_2 ? gpio.set(gpio::PortA, 6) : gpio.clear(gpio::PortA, 6);
     vcu.output.FAN_EN ? gpio.set(gpio::PortD, 0) : gpio.clear(gpio::PortD, 0);
-    vcu.output.GENERAL_PURPOSE_1 ? gpio.set(gpio::PortD, 2) : gpio.clear(gpio::PortD, 2);
-    vcu.output.GENERAL_PURPOSE_2 ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
+    vcu.output.GENERAL_PURPOSE_1 ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
+    vcu.output.GENERAL_PURPOSE_2 ? gpio.set(gpio::PortD, 2) : gpio.clear(gpio::PortD, 2);
 
     // TODO - create PWM signal
     vcu.output.FAN_PWM ? gpio.set(gpio::PortD, 1) : gpio.clear(gpio::PortD, 1);

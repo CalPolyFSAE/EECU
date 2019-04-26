@@ -102,12 +102,12 @@ typedef struct {
 	// TODO - put signal on CAN bus
 	uint8_t PRECHARGE_FAILED;	// CAN 0
 
-	uint8_t REDUNDANT_1;		// GPIO A6
-	uint8_t REDUNDANT_2;		// GPIO E7
+	uint8_t REDUNDANT_1;		// GPIO E7
+	uint8_t REDUNDANT_2;		// GPIO A6
 	uint8_t FAN_EN;				// GPIO D0
 	uint8_t FAN_PWM;			// GPIO D1
-	uint8_t GENERAL_PURPOSE_1;	// GPIO D2
-	uint8_t GENERAL_PURPOSE_2;	// GPIO A7
+	uint8_t GENERAL_PURPOSE_1;	// GPIO A7
+	uint8_t GENERAL_PURPOSE_2;	// GPIO D2
 } output_t;
 
 class VCU {
