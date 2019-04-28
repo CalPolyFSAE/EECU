@@ -1,0 +1,32 @@
+Breakpoint=ui.cpp:21, State=BP_STATE_DISABLED
+Breakpoint=main.cpp:39, State=BP_STATE_DISABLED
+Breakpoint=main.cpp:76, State=BP_STATE_DISABLED
+Breakpoint=main.cpp:82, State=BP_STATE_DISABLED
+Breakpoint=main.cpp:84, State=BP_STATE_DISABLED
+OpenDocument="main.cpp", FilePath="/home/gray/formula/git/VCU/build/source/main.cpp", Line=0
+OpenDocument="canlight.cpp", FilePath="/home/gray/formula/git/MKELibrary/build/lib/canlight.cpp", Line=51
+OpenDocument="io.cpp", FilePath="/home/gray/formula/git/VCU/source/io.cpp", Line=99
+OpenDocument="Service.h", FilePath="/home/gray/formula/git/MKELibrary/System/Service.h", Line=24
+OpenDocument="startup_MKE18F16.S", FilePath="/home/gray/formula/git/MKELibrary/build/CMSIS/startup_MKE18F16.S", Line=314
+OpenDocument="fsl_flexcan.c", FilePath="/home/gray/formula/git/MKELibrary/build/drivers/fsl_flexcan.c", Line=1331
+OpenDocument="pin_mux.c", FilePath="/home/gray/formula/git/VCU/build/board/pin_mux.c", Line=135
+OpenDocument="mc.cpp", FilePath="/home/gray/formula/git/VCU/build/source/mc.cpp", Line=0
+OpenDocument="io.h", FilePath="/home/gray/formula/git/VCU/source/io.h", Line=0
+OpenDocument="ui.cpp", FilePath="/home/gray/formula/git/VCU/build/source/ui.cpp", Line=0
+OpenToolbar="Debug", Floating=0, x=0, y=0
+OpenWindow="Registers 1", DockArea=RIGHT, x=0, y=0, w=663, h=114, FilterBarShown=0, FilteredItems=[]
+OpenWindow="Disassembly", DockArea=LEFT, x=0, y=0, w=177, h=501, FilterBarShown=0, ExecCountersShown=0
+OpenWindow="Source", x=0, y=0, w=0, h=0, FilterBarShown=0, ExecCountersShown=0
+OpenWindow="Break & Tracepoints", DockArea=LEFT, x=0, y=1, w=177, h=477, FilterBarShown=0
+OpenWindow="Watched Data", DockArea=RIGHT, x=0, y=1, w=663, h=864, FilterBarShown=0
+TableHeader="Watched Data", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh";"Access"], ColWidths=[193;130;96;56;188]
+TableHeader="Break & Tracepoints", SortCol="Location", SortOrder="ASCENDING", VisibleCols=["";"Type";"Location";"Extras"], ColWidths=[55;60;91;259]
+TableHeader="tableWidgetSamples", SortCol="Index", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Channel 0"], ColWidths=[84;119;126]
+TableHeader="Registers 1", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Description"], ColWidths=[123;132;392]
+WatchedExpression="mfaults"
+WatchedExpression="msn", DisplayFormat=DISPLAY_FORMAT_BINARY
+WatchedExpression="lsn", DisplayFormat=DISPLAY_FORMAT_BINARY
+WatchedExpression="data", RefreshRate=5
+WatchedExpression="MC_POST_FAULT", RefreshRate=5
+WatchedExpression="vcu", RefreshRate=5
+WatchedExpression="FLEXCAN_TransferSendBlocking"

@@ -4,6 +4,7 @@
 #include "canlight.h"
 #include "adc.h"
 #include "gpio.h"
+#include "uart.h"
 
 using namespace BSP;
 
@@ -54,9 +55,10 @@ void init_io() {
 	canx_config.callback = mc_callback;
 	can.init(MC_CAN_CHANNEL, &canx_config);
 
-	//canx_config.baudRate = IO_CAN_BAUD_RATE;
-	//canx_config.callback = io_callback;
-	//can.init(IO_CAN_CHANNEL, &canx_config);
+	canx_config.baudRate = IO_CAN_BAUD_RATE;
+	canx_config.callback = io_callback;
+	can.init(IO_CAN_CHANNEL, &canx_config);
+
 
 }
 

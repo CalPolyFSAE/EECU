@@ -1,8 +1,8 @@
 import os
 
 # !! Update these aths to point to your respective directories !!
-GNU_PATH = '/usr/lib/gcc-arm-none-eabi/bin/'
-BSP_PATH = '/home/asaha/Documents/MCUXpresso/workspace/MKELibrary/'
+GNU_PATH = '/home/gray/embedded/gcc-arm-none-eabi/bin/'
+BSP_PATH = '../MKELibrary/'
 
 # Change the compiled name of the file below
 # ex. compileTarget = 'exampleProject'
@@ -72,7 +72,7 @@ env['LINKFLAGS'] = '-O0 -g -DDEBUG -Wall \
     -mcpu=cortex-m4 -mfloat-abi=hard \
     -mfpu=fpv4-sp-d16 -TMKE18F512xxx16_flash.ld -static'
 
-cppsource = Glob('build/board/*.cpp') +\
+cppsource = Glob('build/board/*.c') +\
     Glob('build/source/*.cpp')
 
 # Make Static BSP Library
