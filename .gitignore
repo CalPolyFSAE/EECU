@@ -1,4 +1,5 @@
 SConstruct
+.sconsign.dblite
 build
 *.elf
 *.swp
