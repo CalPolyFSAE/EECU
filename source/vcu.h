@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define VCU_FREQUENCY            100U
-#define CLOCK_FREQUENCY     60000000U
+#define VCU_FREQUENCY            100
+#define CLOCK_FREQUENCY     60000000
 
 #define TIMER_PERIOD (CLOCK_FREQUENCY / VCU_FREQUENCY)
 
@@ -25,16 +25,14 @@
 #define THROTTLE_NEG_MIN    VOLTS(0.50)
 #define THROTTLE_NEG_MAX    VOLTS(4.50)
 
-#define FAN_X1  35
-#define FAN_Y1   0
-#define FAN_X2  58
-#define FAN_Y2  60
-#define FAN_GAIN    ((FAN_Y2 - FAN_Y1) / (FAN_X2 - FAN_X1))
-#define FAN_OFFSET  (((FAN_X1 * FAN_Y2) - (FAN_X2 * FAN_Y1)) / (FAN_X1 - FAN_X2))
+#define FAN_GAIN    1
+#define FAN_OFFSET  0
 
 #define THROTTLE_AVG_MIN     5
 #define THROTTLE_AVG_MAX    25
 #define BATTERY_MIN         90
+
+#define POWER_LIMIT 70
 
 enum DIGITAL {
     DIGITAL_LOW,

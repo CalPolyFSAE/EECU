@@ -1,6 +1,8 @@
 #include "vcu.h"
 #include "mc.h"
 
+static uint8_t torque_map[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
 // VCU class constructor
 VCU::VCU() {
     input.MC_EN = DIGITAL_LOW;
@@ -52,7 +54,9 @@ VCU::VCU() {
 void VCU::motor_loop() {
     static state_t state = STATE_STANDBY;
     static uint32_t timer = 0;
-    uint32_t THROTTLE_AVG;
+    int16_t torque;
+    uint8_t THROTTLE_AVG;
+    uint8_t MC_POWER;
 
     THROTTLE_AVG = ((((input.THROTTLE_1 - THROTTLE_POS_MIN) * 50) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN)) 
                    - (((input.THROTTLE_2 - THROTTLE_NEG_MIN) * 50) / (THROTTLE_NEG_MAX - THROTTLE_NEG_MIN)))
@@ -84,10 +88,14 @@ void VCU::motor_loop() {
         case STATE_DRIVING:
             if(timer > RTDS_TIME) {
                 output.RTDS = DIGITAL_LOW;
-                // TODO - power limiting
-                // TODO - traction control
-                //mc_torque_request(THROTTLE_AVG / 10);
-                mc_torque_request(0);
+                MC_POWER = (input.MC_VOLTAGE * input.MC_CURRENT) / 1000;
+                torque = torque_map[THROTTLE_AVG / 10];
+
+                if(MC_POWER > POWER_LIMIT) {
+                    torque -= (MC_POWER - POWER_LIMIT) * (MC_POWER - POWER_LIMIT);
+                }
+                
+                mc_torque_request(torque);
             } else {
                 output.RTDS = DIGITAL_HIGH;
                 mc_torque_request(0);
@@ -230,7 +238,7 @@ void VCU::shutdown_loop() {
 
 // VCU redundancy loop
 void VCU::redundancy_loop() {
-    uint32_t BSPD_OK;
+    uint8_t BSPD_OK;
 
     if(!((input.CURRENT_SENSE > CA) && ((input.BRAKE_FRONT > BFA) || (input.BRAKE_REAR > BRA))) 
        && ((input.BRAKE_FRONT > BRAKE_MIN) && (input.BRAKE_FRONT < BRAKE_MAX) && (input.BRAKE_REAR > BRAKE_MIN) && (input.BRAKE_REAR < BRAKE_MAX))) {
