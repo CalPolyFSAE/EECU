@@ -1,12 +1,50 @@
-#include <string.h>
-
 #include "vcu.h"
 #include "mc.h"
 
 // VCU class constructor
 VCU::VCU() {
-    memset(&input, 0, sizeof(input));
-    memset(&output, 0, sizeof(input));
+    input.MC_EN = DIGITAL_LOW;
+    input.MC_POST_FAULT = 0;
+    input.MC_RUN_FAULT = 0;
+    input.MC_CURRENT = 0;
+    input.MC_VOLTAGE = 0;
+    input.MC_SPEED = 0;
+    input.THROTTLE_1 = 0;
+    input.THROTTLE_2 = 0;
+    input.LATCH_SENSE = DIGITAL_LOW;
+    input.TS_READY_SENSE = DIGITAL_LOW;
+    input.TS_RDY = DIGITAL_LOW;
+    input.TS_LIVE = DIGITAL_LOW;
+    input.CHARGER_CONNECTED = DIGITAL_LOW;
+    input.BMS_VOLTAGE = 0;
+    input.BMS_TEMPERATURE = 0;
+    input.BMS_OK = DIGITAL_LOW;
+    input.IMD_OK = DIGITAL_LOW;
+    input.BSPD_OK = DIGITAL_LOW;
+    input.CURRENT_SENSE = 0;
+    input.BRAKE_FRONT = 0;
+    input.BRAKE_REAR = 0;
+    input.WHEEL_SPEED_FR = 0;
+    input.WHEEL_SPEED_FL = DIGITAL_LOW;
+    input.WHEEL_SPEED_RR = DIGITAL_LOW;
+    input.WHEEL_SPEED_RL = DIGITAL_LOW;
+    
+    output.RTDS = DIGITAL_LOW;
+    output.BRAKE_LIGHT = DIGITAL_LOW;
+    output.AIR_POS = DIGITAL_LOW;
+    output.AIR_NEG = DIGITAL_LOW;
+    output.PUMP_EN = DIGITAL_LOW;
+    output.DCDC_DISABLE = DIGITAL_LOW;
+    output.PRECHARGE = DIGITAL_LOW;
+    output.DISCHARGE = DIGITAL_LOW;
+    output.PRECHARGE_FAILED = DIGITAL_LOW;
+    output.REDUNDANT_1 = DIGITAL_LOW;
+    output.REDUNDANT_2 = DIGITAL_LOW;
+    output.FAN_EN = DIGITAL_LOW;
+    output.FAN_PWM = DIGITAL_LOW;
+    output.GENERAL_PURPOSE_1 = DIGITAL_LOW;
+    output.GENERAL_PURPOSE_2 = DIGITAL_LOW;
+
     flag = false;
 }
 
@@ -46,9 +84,9 @@ void VCU::motor_loop() {
         case STATE_DRIVING:
             if(timer > RTDS_TIME) {
                 output.RTDS = DIGITAL_LOW;
-                // TODO - convert throttle input to torque request
                 // TODO - power limiting
                 // TODO - traction control
+                //mc_torque_request(THROTTLE_AVG / 10);
                 mc_torque_request(0);
             } else {
                 output.RTDS = DIGITAL_HIGH;

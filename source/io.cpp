@@ -4,11 +4,28 @@
 #include "canlight.h"
 #include "adc.h"
 #include "gpio.h"
-#include "uart.h"
 
 using namespace BSP;
 
 extern VCU vcu;
+
+// callback to process CAN messages on the general bus
+static void gen_can_callback() {
+    uint8_t buffer[8];
+
+    switch(receive_can_message(GEN_CAN_CHANNEL, buffer)) {
+        // TODO - read CHARGER_CONNECTECD
+        // TODO - read BMS_VOLTAGE
+        // TODO - read BMS_TEMPERATURE
+        default:
+            break;
+    }
+}
+
+// callback to process CAN messages on the motor controller bus
+static void mc_can_callback() {
+    mc_receive_broadcast_message();
+}
 
 // initializes VCU drivers
 void init_io() {
@@ -51,11 +68,11 @@ void init_io() {
     can::CANlight::ConstructStatic(&config);
     can::CANlight &can = can::CANlight::StaticClass();
     canx_config.baudRate = GEN_CAN_BAUD_RATE;
-    canx_config.callback = gen_callback;
+    canx_config.callback = gen_can_callback;
     can.init(GEN_CAN_CHANNEL, &canx_config);
-    //canx_config.baudRate = MC_CAN_BAUD_RATE;
-    //canx_config.callback = mc_callback;
-    //can.init(MC_CAN_CHANNEL, &canx_config);
+    canx_config.baudRate = MC_CAN_BAUD_RATE;
+    canx_config.callback = mc_can_callback;
+    can.init(MC_CAN_CHANNEL, &canx_config);
 }
 
 // reads VCU input signals from GPIO and ADC pins
@@ -99,8 +116,9 @@ void output_map() {
     vcu.output.GENERAL_PURPOSE_1 ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
     vcu.output.GENERAL_PURPOSE_2 ? gpio.set(gpio::PortD, 2) : gpio.clear(gpio::PortD, 2);
 
-    // TODO - create PWM signal
-    vcu.output.FAN_PWM ? gpio.set(gpio::PortD, 1) : gpio.clear(gpio::PortD, 1);
+    // TODO - write LATCH_SIZE
+    // TODO - write PRECHARGE_FAILED
+    // TODO - write FAN_PWM
 }
 
 // receives a CAN message from the specified channel
@@ -124,14 +142,4 @@ void send_can_message(uint8_t channel, uint32_t address, uint8_t *data) {
     memcpy(frame.data, data, sizeof(frame.data));
 
     can.tx(channel, frame);
-}
-
-// callback to process general CAN messages
-void gen_callback() {
-    uint8_t buffer[8];
-
-    switch(receive_can_message(GEN_CAN_CHANNEL, buffer)) {
-        default:
-            break;
-    }
 }

@@ -165,8 +165,10 @@
 #define MC_EEPROM_PARAMETER_BRAKE_PEDAL_FLIPPED             186
 #define MC_EEPROM_PARAMETER_BRAKE_INPUT_BYPASSED            199
 
+void mc_send_command_message(uint16_t torque, uint16_t speed, uint8_t direction, uint8_t settings, uint16_t limit);
+void mc_send_parameter_message(uint16_t address, uint8_t write, uint16_t data);
+void mc_receive_broadcast_message();
 void mc_torque_request(int16_t torque);
 void mc_clear_faults();
-void mc_callback();
 
 #endif

@@ -14,6 +14,5 @@ void input_map();
 void output_map();
 uint8_t receive_can_message(uint8_t channel, uint8_t *data);
 void send_can_message(uint8_t channel, uint32_t address, uint8_t *data);
-void gen_callback();
 
 #endif
