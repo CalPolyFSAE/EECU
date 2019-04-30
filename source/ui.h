@@ -11,5 +11,6 @@ typedef struct uidata_t {
 
 const uint8_t mclear[] = "\e[2J";
 
+void ui(uint8_t data);
 void uiinit();
 void uiupdate();
