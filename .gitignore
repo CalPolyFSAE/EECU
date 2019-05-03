@@ -1,8 +1,9 @@
 SConstruct
-.sconsign.dblite
-build
+*.dblite
 *.elf
 *.swp
+*.bak
 *.launch
+**/build
 **/Debug
 **/Release
