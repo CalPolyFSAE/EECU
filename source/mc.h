@@ -1,7 +1,7 @@
 #ifndef MC_H
 #define MC_H
 
-#include <stdint.h>
+#include "MKE18F16.h"
 
 #define MC_BROADCAST_MESSAGE_TEMPERATURES_1                 0x0A0
 #define MC_BROADCAST_MESSAGE_TEMPERATURES_2                 0x0A1

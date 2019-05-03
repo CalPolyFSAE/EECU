@@ -4,6 +4,7 @@
 #include "canlight.h"
 #include "adc.h"
 #include "gpio.h"
+#include "fsl_flexio.h"
 
 using namespace BSP;
 
@@ -13,7 +14,7 @@ extern VCU vcu;
 static void gen_can_callback() {
     uint8_t buffer[8];
 
-    switch(receive_can_message(GEN_CAN_CHANNEL, buffer)) {
+    switch(can_receive(GEN_CAN_CHANNEL, buffer)) {
         // TODO - read CHARGER_CONNECTECD
         // TODO - read BMS_VOLTAGE
         // TODO - read BMS_TEMPERATURE
@@ -25,6 +26,60 @@ static void gen_can_callback() {
 // callback to process CAN messages on the motor controller bus
 static void mc_can_callback() {
     mc_receive_broadcast_message();
+}
+
+// initializes the PWM driver
+static void pwm_init() {
+    flexio_config_t config;
+    flexio_timer_config_t timer_config;
+    uint32_t sum;
+    uint8_t lower;
+    uint8_t upper;
+    
+    FLEXIO_GetDefaultConfig(&config);
+    FLEXIO_Init(FLEXIO, &config);
+
+    sum = (((2 * CLOCK_GetIpFreq(kCLOCK_Flexio0)) / PWM_FREQUENCY) + 1) / 2;
+    lower = (((sum * (100 - PWM_MIN)) / 50) + 1) / 2;
+    upper = sum - lower;
+
+    timer_config.triggerSelect = FLEXIO_TIMER_TRIGGER_SEL_SHIFTnSTAT(0U);
+    timer_config.triggerSource = kFLEXIO_TimerTriggerSourceInternal;
+    timer_config.triggerPolarity = kFLEXIO_TimerTriggerPolarityActiveLow;
+    timer_config.pinConfig = kFLEXIO_PinConfigOutput;
+    timer_config.pinPolarity = kFLEXIO_PinActiveHigh;
+    timer_config.pinSelect = 1;
+    timer_config.timerMode = kFLEXIO_TimerModeDisabled;
+    timer_config.timerOutput = kFLEXIO_TimerOutputOneNotAffectedByReset;
+    timer_config.timerDecrement = kFLEXIO_TimerDecSrcOnFlexIOClockShiftTimerOutput;
+    timer_config.timerDisable = kFLEXIO_TimerDisableNever;
+    timer_config.timerEnable = kFLEXIO_TimerEnabledAlways;
+    timer_config.timerReset = kFLEXIO_TimerResetNever;
+    timer_config.timerStart = kFLEXIO_TimerStartBitDisabled;
+    timer_config.timerStop = kFLEXIO_TimerStopBitDisabled;
+    timer_config.timerCompare = ((upper - 1) << 8) | (lower - 1);
+
+    FLEXIO_SetTimerConfig(FLEXIO, 0, &timer_config);
+    FLEXIO->TIMCTL[0] |= FLEXIO_TIMCTL_TIMOD(kFLEXIO_TimerModeDual8BitPWM);
+}
+
+// changes the PWM duty cycle
+static void pwm_set(uint8_t duty) {
+    uint32_t sum;
+    uint8_t lower;
+    uint8_t upper;
+ 
+    if(duty > PWM_MAX) {
+        duty = PWM_MAX;
+    } else if(duty < PWM_MIN) {
+        duty = PWM_MIN;
+    }
+
+    sum = (((2 * CLOCK_GetIpFreq(kCLOCK_Flexio0)) / PWM_FREQUENCY) + 1) / 2;
+    lower = (((sum * (100 - duty)) / 50) + 1) / 2;
+    upper = sum - lower;
+    
+    FLEXIO->TIMCMP[0] = FLEXIO_TIMCMP_CMP(((upper - 1) << 8) | (lower - 1));
 }
 
 // initializes VCU drivers
@@ -57,7 +112,6 @@ void init_io() {
     gpio.out_dir(gpio::PortE, 7);
     gpio.out_dir(gpio::PortA, 6);
     gpio.out_dir(gpio::PortD, 0);
-    gpio.out_dir(gpio::PortD, 1);
     gpio.out_dir(gpio::PortA, 7);
     gpio.out_dir(gpio::PortD, 2);
 
@@ -73,6 +127,9 @@ void init_io() {
     canx_config.baudRate = MC_CAN_BAUD_RATE;
     canx_config.callback = mc_can_callback;
     can.init(MC_CAN_CHANNEL, &canx_config);
+
+    // initialize PWM driver
+    pwm_init();
 }
 
 // reads VCU input signals from GPIO and ADC pins
@@ -106,23 +163,25 @@ void output_map() {
     vcu.output.BRAKE_LIGHT ? gpio.set(gpio::PortB, 1) : gpio.clear(gpio::PortB, 1);
     vcu.output.AIR_POS ? gpio.set(gpio::PortB, 0) : gpio.clear(gpio::PortB, 0);
     vcu.output.AIR_NEG ? gpio.set(gpio::PortC, 9) : gpio.clear(gpio::PortC, 9);
-    vcu.output.PUMP_EN ? gpio.set(gpio::PortE, 11) : gpio.clear(gpio::PortE, 11);
+    vcu.output.PUMP_EN ? gpio.clear(gpio::PortE, 11) : gpio.set(gpio::PortE, 11);
     vcu.output.DCDC_DISABLE ? gpio.set(gpio::PortD, 13) : gpio.clear(gpio::PortD, 13);
     vcu.output.PRECHARGE ? gpio.set(gpio::PortB, 13) : gpio.clear(gpio::PortB, 13);
     vcu.output.DISCHARGE ? gpio.set(gpio::PortB, 12) : gpio.clear(gpio::PortB, 12);
     vcu.output.REDUNDANT_1 ? gpio.set(gpio::PortE, 7) : gpio.clear(gpio::PortE, 7);
     vcu.output.REDUNDANT_2 ? gpio.set(gpio::PortA, 6) : gpio.clear(gpio::PortA, 6);
-    vcu.output.FAN_EN ? gpio.set(gpio::PortD, 0) : gpio.clear(gpio::PortD, 0);
+    vcu.output.FAN_EN ? gpio.clear(gpio::PortD, 0) : gpio.set(gpio::PortD, 0);
     vcu.output.GENERAL_PURPOSE_1 ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
     vcu.output.GENERAL_PURPOSE_2 ? gpio.set(gpio::PortD, 2) : gpio.clear(gpio::PortD, 2);
-
+    
     // TODO - write LATCH_SIZE
     // TODO - write PRECHARGE_FAILED
-    // TODO - write FAN_PWM
+
+    pwm_set(vcu.output.FAN_PWM);
+
 }
 
 // receives a CAN message from the specified channel
-uint8_t receive_can_message(uint8_t channel, uint8_t *data) {
+uint8_t can_receive(uint8_t channel, uint8_t *data) {
     can::CANlight &can = can::CANlight::StaticClass();
     can::CANlight::frame frame = can.readrx(channel);
 
@@ -132,7 +191,7 @@ uint8_t receive_can_message(uint8_t channel, uint8_t *data) {
 }
 
 // sends a CAN message on the specified channel
-void send_can_message(uint8_t channel, uint32_t address, uint8_t *data) {
+void can_send(uint8_t channel, uint32_t address, uint8_t *data) {
     can::CANlight &can = can::CANlight::StaticClass();
     can::CANlight::frame frame;
 

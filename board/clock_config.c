@@ -36,7 +36,6 @@ processor_version: 5.0.0
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define SCG_SOSC_DISABLE                                  0U  /*!< System OSC disabled */
 
 /*******************************************************************************
  * Variables
@@ -120,7 +119,7 @@ outputs:
 - {id: PCC.PCC_ADC0_CLK.outFreq, value: 30 MHz}
 - {id: PCC.PCC_ADC1_CLK.outFreq, value: 30 MHz}
 - {id: PCC.PCC_ADC2_CLK.outFreq, value: 30 MHz}
-- {id: PCC.PCC_FLEXIO_CLK.outFreq, value: 30 MHz}
+- {id: PCC.PCC_FLEXIO_CLK.outFreq, value: 500 kHz}
 - {id: PCC.PCC_FTM0_CLK.outFreq, value: 60 MHz}
 - {id: PCC.PCC_FTM1_CLK.outFreq, value: 60 MHz}
 - {id: PCC.PCC_FTM2_CLK.outFreq, value: 60 MHz}
@@ -137,14 +136,14 @@ outputs:
 - {id: PLLDIV1_CLK.outFreq, value: 180 MHz}
 - {id: PLLDIV2_CLK.outFreq, value: 90 MHz}
 - {id: SIRCDIV1_CLK.outFreq, value: 8 MHz}
-- {id: SIRCDIV2_CLK.outFreq, value: 4 MHz}
+- {id: SIRCDIV2_CLK.outFreq, value: 500 kHz}
 - {id: SIRC_CLK.outFreq, value: 8 MHz}
 - {id: System_clock.outFreq, value: 60 MHz}
 settings:
 - {id: PCC.PCC_ADC0_SEL.sel, value: SCG.FIRCDIV2_CLK}
 - {id: PCC.PCC_ADC1_SEL.sel, value: SCG.FIRCDIV2_CLK}
 - {id: PCC.PCC_ADC2_SEL.sel, value: SCG.FIRCDIV2_CLK}
-- {id: PCC.PCC_FLEXIO_SEL.sel, value: SCG.FIRCDIV2_CLK}
+- {id: PCC.PCC_FLEXIO_SEL.sel, value: SCG.SIRCDIV2_CLK}
 - {id: PCC.PCC_FTM0_SEL.sel, value: SCG.FIRCDIV1_CLK}
 - {id: PCC.PCC_FTM1_SEL.sel, value: SCG.FIRCDIV1_CLK}
 - {id: PCC.PCC_FTM2_SEL.sel, value: SCG.FIRCDIV1_CLK}
@@ -164,7 +163,7 @@ settings:
 - {id: SCG.FIRCDIV2.scale, value: '2', locked: true}
 - {id: SCG.PREDIV.scale, value: '3', locked: true}
 - {id: SCG.SIRCDIV1.scale, value: '1', locked: true}
-- {id: SCG.SIRCDIV2.scale, value: '2', locked: true}
+- {id: SCG.SIRCDIV2.scale, value: '16', locked: true}
 - {id: SCG.SPLLDIV1.scale, value: '1', locked: true}
 - {id: SCG.SPLLDIV2.scale, value: '2', locked: true}
 - {id: SCG.SPLLSRCSEL.sel, value: SCG.FIRC}
@@ -172,6 +171,7 @@ settings:
 - {id: SCG_FIRCCSR_FIRCLPEN_CFG, value: Enabled}
 - {id: SCG_FIRCCSR_FIRCSTEN_CFG, value: Enabled}
 - {id: SCG_SOSCCFG_OSC_MODE_CFG, value: ModeOscLowPower}
+- {id: SCG_SOSCCSR_SOSCEN_CFG, value: Enabled}
 - {id: SCG_SPLLCSR_SPLLEN_CFG, value: Enabled}
 sources:
 - {id: SCG.FIRC.outFreq, value: 60 MHz}
@@ -191,7 +191,7 @@ const scg_sys_clk_config_t g_sysClkConfig_BOARD_BootClockRUN =
 const scg_sosc_config_t g_scgSysOscConfig_BOARD_BootClockRUN =
     {
         .freq = 0U,                               /* System Oscillator frequency: 0Hz */
-        .enableMode = SCG_SOSC_DISABLE,           /* System OSC disabled */
+        .enableMode = kSCG_SysOscEnable,          /* Enable System OSC clock */
         .monitorMode = kSCG_SysOscMonitorDisable, /* Monitor disabled */
         .div1 = kSCG_AsyncClkDisable,             /* System OSC Clock Divider 1: Clock output is disabled */
         .div2 = kSCG_AsyncClkDisable,             /* System OSC Clock Divider 2: Clock output is disabled */
@@ -201,7 +201,7 @@ const scg_sirc_config_t g_scgSircConfig_BOARD_BootClockRUN =
     {
         .enableMode = kSCG_SircEnable | kSCG_SircEnableInLowPower,/* Enable SIRC clock, Enable SIRC in low power mode */
         .div1 = kSCG_AsyncClkDivBy1,              /* Slow IRC Clock Divider 1: divided by 1 */
-        .div2 = kSCG_AsyncClkDivBy2,              /* Slow IRC Clock Divider 2: divided by 2 */
+        .div2 = kSCG_AsyncClkDivBy16,             /* Slow IRC Clock Divider 2: divided by 16 */
         .range = kSCG_SircRangeHigh,              /* Slow IRC high range clock (8 MHz) */
     };
 const scg_firc_config_t g_scgFircConfig_BOARD_BootClockRUN =
@@ -265,7 +265,7 @@ void BOARD_BootClockRUN(void)
     /* Set PCC LPUART2 selection */
     CLOCK_SetIpSrc(kCLOCK_Lpuart2, kCLOCK_IpSrcFircAsync);
     /* Set PCC FLEXIO selection */
-    CLOCK_SetIpSrc(kCLOCK_Flexio0, kCLOCK_IpSrcFircAsync);
+    CLOCK_SetIpSrc(kCLOCK_Flexio0, kCLOCK_IpSrcSircAsync);
     /* Set PCC LPTMR0 selection */
     CLOCK_SetIpSrc(kCLOCK_Lptmr0, kCLOCK_IpSrcFircAsync);
     /* Set PCC LPIT0 selection */

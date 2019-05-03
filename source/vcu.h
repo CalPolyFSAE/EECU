@@ -1,12 +1,11 @@
 #ifndef VCU_H
 #define VCU_H
 
-#include <stdint.h>
+#include "MKE18F16.h"
+#include "clock_config.h"
 
-#define VCU_FREQUENCY            100
-#define CLOCK_FREQUENCY     60000000
-
-#define TIMER_PERIOD (CLOCK_FREQUENCY / VCU_FREQUENCY)
+#define VCU_FREQUENCY 100
+#define TIMER_PERIOD (BOARD_BOOTCLOCKRUN_CORE_CLOCK / VCU_FREQUENCY)
 
 #define VOLTS(V)    (((V) * 4095) / 5)
 #define SECONDS(S)  ((S) * VCU_FREQUENCY)
@@ -28,11 +27,10 @@
 #define FAN_GAIN    1
 #define FAN_OFFSET  0
 
-#define THROTTLE_AVG_MIN     5
-#define THROTTLE_AVG_MAX    25
-#define BATTERY_MIN         90
-
-#define POWER_LIMIT 70
+#define THROTTLE_HIGH_LIMIT      5
+#define THROTTLE_LOW_LIMIT      25
+#define BATTERY_LIMIT           90
+#define POWER_LIMIT             70
 
 enum DIGITAL {
     DIGITAL_LOW,
@@ -90,7 +88,7 @@ typedef struct {
     uint8_t REDUNDANT_1;        // GPIO E7
     uint8_t REDUNDANT_2;        // GPIO A6
     uint8_t FAN_EN;             // GPIO D0
-    uint8_t FAN_PWM;            // GPIO D1
+    uint8_t FAN_PWM;            // FXIO D1
     uint8_t GENERAL_PURPOSE_1;  // GPIO A7
     uint8_t GENERAL_PURPOSE_2;  // GPIO D2
 } output_t;

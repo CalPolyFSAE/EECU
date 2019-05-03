@@ -1,7 +1,41 @@
 #include "vcu.h"
 #include "mc.h"
 
-static uint8_t torque_map[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// averages throttles and converts to percentage
+static uint8_t throttle_average(uint32_t positive, uint32_t negative) {
+    int32_t throttle[2];
+    int32_t average;
+
+    throttle[0] = (100 * (positive - THROTTLE_POS_MIN)) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
+    throttle[1] = (100 * (negative - THROTTLE_NEG_MAX)) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
+    average = (throttle[0] + throttle[1]) / 2;
+
+    if(average > 100) {
+        return(100);
+    } else if(average < 0) {
+        return(0);
+    } else {
+        return(average);
+    }
+}
+
+// checks if brakes are active
+static bool brakes_active(uint32_t front, uint32_t rear) {
+    if((front > BFA) || (rear > BRA)) {
+        return(true);
+    } else {
+        return(false);
+    }
+}
+
+// checks if brakes are valid
+static bool brakes_valid(uint32_t front, uint32_t rear) {
+    if((front > BRAKE_MIN) && (front < BRAKE_MAX) && (rear > BRAKE_MIN) && (rear < BRAKE_MAX)) {
+        return(true);
+    } else {
+        return(false);
+    }
+}
 
 // VCU class constructor
 VCU::VCU() {
@@ -58,9 +92,7 @@ void VCU::motor_loop() {
     uint8_t THROTTLE_AVG;
     uint8_t MC_POWER;
 
-    THROTTLE_AVG = ((((input.THROTTLE_1 - THROTTLE_POS_MIN) * 50) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN)) 
-                   - (((input.THROTTLE_2 - THROTTLE_NEG_MIN) * 50) / (THROTTLE_NEG_MAX - THROTTLE_NEG_MIN)))
-                   + 50;
+    THROTTLE_AVG = throttle_average(input.THROTTLE_1, input.THROTTLE_2);
 
     // TODO - calculate wheel speeds
 
@@ -71,11 +103,11 @@ void VCU::motor_loop() {
             if((input.MC_EN == DIGITAL_HIGH) 
                && !input.MC_POST_FAULT 
                && !input.MC_RUN_FAULT 
-               && (THROTTLE_AVG < THROTTLE_AVG_MIN) 
+               && (THROTTLE_AVG < THROTTLE_LOW_LIMIT) 
                && (output.AIR_POS == DIGITAL_HIGH) 
                && (output.AIR_NEG == DIGITAL_HIGH) 
-               && ((input.BRAKE_FRONT > BFA) || (input.BRAKE_REAR > BRA)) 
-               && ((input.BRAKE_FRONT > BRAKE_MIN) && (input.BRAKE_FRONT < BRAKE_MAX) && (input.BRAKE_REAR > BRAKE_MIN) && (input.BRAKE_REAR < BRAKE_MAX))) {
+               && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR) 
+               && brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
                 state = STATE_DRIVING;
                 mc_clear_faults();
                 mc_torque_request(-1);
@@ -89,7 +121,7 @@ void VCU::motor_loop() {
             if(timer > RTDS_TIME) {
                 output.RTDS = DIGITAL_LOW;
                 MC_POWER = (input.MC_VOLTAGE * input.MC_CURRENT) / 1000;
-                torque = torque_map[THROTTLE_AVG / 10];
+                torque = THROTTLE_AVG / 10;
 
                 if(MC_POWER > POWER_LIMIT) {
                     torque -= (MC_POWER - POWER_LIMIT) * (MC_POWER - POWER_LIMIT);
@@ -107,8 +139,8 @@ void VCU::motor_loop() {
                || input.MC_RUN_FAULT 
                || (output.AIR_POS == DIGITAL_LOW) 
                || (output.AIR_NEG == DIGITAL_LOW) 
-               || ((THROTTLE_AVG > THROTTLE_AVG_MAX) && ((input.BRAKE_FRONT > BFA) || (input.BRAKE_REAR > BRA))) 
-               || ((input.BRAKE_FRONT < BRAKE_MIN) || (input.BRAKE_FRONT > BRAKE_MAX) || (input.BRAKE_REAR < BRAKE_MIN) || (input.BRAKE_REAR > BRAKE_MAX))) {
+               || ((THROTTLE_AVG > THROTTLE_HIGH_LIMIT) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
+               || !brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
                 state = STATE_STANDBY;
             }
 
@@ -118,7 +150,7 @@ void VCU::motor_loop() {
             break;
     }
 
-    if((input.BRAKE_FRONT > BFA) || (input.BRAKE_REAR > BRA)) {
+    if(brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) {
         output.BRAKE_LIGHT = DIGITAL_HIGH;
     } else {
         output.BRAKE_LIGHT = DIGITAL_LOW;
@@ -159,11 +191,11 @@ void VCU::shutdown_loop() {
             output.FAN_EN = DIGITAL_LOW;
             output.FAN_PWM = 0;
 
-            if(((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE < ((input.BMS_VOLTAGE * BATTERY_MIN) / 100)) && (input.CHARGER_CONNECTED == DIGITAL_LOW)) 
+            if(((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE < ((input.BMS_VOLTAGE * BATTERY_LIMIT) / 100)) && (input.CHARGER_CONNECTED == DIGITAL_LOW)) 
                || (input.TS_READY_SENSE == DIGITAL_LOW)) {
                 state = STATE_AIR_OFF;
                 output.PRECHARGE_FAILED = DIGITAL_HIGH;
-            } else if((((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE > ((input.BMS_VOLTAGE * BATTERY_MIN) / 100))) || (input.CHARGER_CONNECTED == DIGITAL_HIGH)) 
+            } else if((((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE > ((input.BMS_VOLTAGE * BATTERY_LIMIT) / 100))) || (input.CHARGER_CONNECTED == DIGITAL_HIGH)) 
                       && (input.TS_READY_SENSE == DIGITAL_HIGH)) {
                 state = STATE_AIR_ON;
             } else {
@@ -219,7 +251,7 @@ void VCU::shutdown_loop() {
                 output.DCDC_DISABLE = DIGITAL_LOW;
                 output.PRECHARGE = DIGITAL_LOW;
                 output.DISCHARGE = DIGITAL_HIGH;
-                output.FAN_EN = DIGITAL_LOW;
+                output.FAN_EN = DIGITAL_HIGH;
                 output.FAN_PWM = (FAN_GAIN * input.BMS_TEMPERATURE) + FAN_OFFSET;
             } else {
                 timer++;
@@ -240,8 +272,8 @@ void VCU::shutdown_loop() {
 void VCU::redundancy_loop() {
     uint8_t BSPD_OK;
 
-    if(!((input.CURRENT_SENSE > CA) && ((input.BRAKE_FRONT > BFA) || (input.BRAKE_REAR > BRA))) 
-       && ((input.BRAKE_FRONT > BRAKE_MIN) && (input.BRAKE_FRONT < BRAKE_MAX) && (input.BRAKE_REAR > BRAKE_MIN) && (input.BRAKE_REAR < BRAKE_MAX))) {
+    if(!((input.CURRENT_SENSE > CA) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
+       && brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
         BSPD_OK = DIGITAL_HIGH;
     } else {
         BSPD_OK = DIGITAL_LOW;

@@ -17,7 +17,7 @@ void mc_send_command_message(uint16_t torque, uint16_t speed, uint8_t direction,
     buffer[6] = limit & 0xFF;
     buffer[7] = (limit >> 8) & 0xFF;
 
-    send_can_message(MC_CAN_CHANNEL, MC_COMMAND_MESSAGE, buffer);
+    can_send(MC_CAN_CHANNEL, MC_COMMAND_MESSAGE, buffer);
 }
 
 // sends a parameter message to the motor controller
@@ -32,14 +32,14 @@ void mc_send_parameter_message(uint16_t address, uint8_t write, uint16_t data) {
     buffer[6] = 0x00;
     buffer[7] = 0x00;
 
-    send_can_message(MC_CAN_CHANNEL, MC_PARAMETER_MESSAGE_SEND, buffer);
+    can_send(MC_CAN_CHANNEL, MC_PARAMETER_MESSAGE_SEND, buffer);
 }
 
 // receives a broadcast message from the motor controller
 void mc_receive_broadcast_message() {
     uint8_t buffer[8];
 
-    switch(receive_can_message(MC_CAN_CHANNEL, buffer)) {
+    switch(can_receive(MC_CAN_CHANNEL, buffer)) {
         case MC_BROADCAST_MESSAGE_FAULT_CODES:
             vcu.input.MC_POST_FAULT = (buffer[3] << 24) | (buffer[2] << 16) | (buffer[1] << 8) | buffer[0];
             vcu.input.MC_RUN_FAULT = (buffer[7] << 24) | (buffer[6] << 16) | (buffer[5] << 8) | buffer[4];
