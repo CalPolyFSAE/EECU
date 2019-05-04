@@ -1,5 +1,6 @@
 #include "vcu.h"
 #include "mc.h"
+#include "io.h"
 
 // averages throttles and converts to percentage
 static uint8_t throttle_average(uint32_t positive, uint32_t negative) {
@@ -64,7 +65,8 @@ VCU::VCU() {
     input.WHEEL_SPEED_FL = DIGITAL_LOW;
     input.WHEEL_SPEED_RR = DIGITAL_LOW;
     input.WHEEL_SPEED_RL = DIGITAL_LOW;
-    
+ 
+    output.MC_TORQUE = 0;
     output.RTDS = DIGITAL_LOW;
     output.BRAKE_LIGHT = DIGITAL_LOW;
     output.AIR_POS = DIGITAL_LOW;
@@ -88,17 +90,17 @@ VCU::VCU() {
 void VCU::motor_loop() {
     static state_t state = STATE_STANDBY;
     static uint32_t timer = 0;
-    int16_t torque;
     uint8_t THROTTLE_AVG;
     uint8_t MC_POWER;
 
     THROTTLE_AVG = throttle_average(input.THROTTLE_1, input.THROTTLE_2);
 
+    // TODO - rules T6.2.3 and EV2.4
     // TODO - calculate wheel speeds
-
+    
     switch(state) {
         case STATE_STANDBY:
-            mc_torque_request(-1);
+            output.MC_TORQUE = TORQUE_DIS;
 
             if((input.MC_EN == DIGITAL_HIGH) 
                && !input.MC_POST_FAULT 
@@ -108,10 +110,8 @@ void VCU::motor_loop() {
                && (output.AIR_NEG == DIGITAL_HIGH) 
                && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR) 
                && brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
-                state = STATE_DRIVING;
                 mc_clear_faults();
-                mc_torque_request(-1);
-                mc_torque_request(0);
+                state = STATE_DRIVING;
                 timer = 0;
             }
 
@@ -120,28 +120,32 @@ void VCU::motor_loop() {
         case STATE_DRIVING:
             if(timer > RTDS_TIME) {
                 output.RTDS = DIGITAL_LOW;
+                output.MC_TORQUE = THROTTLE_AVG / 10;
                 MC_POWER = (input.MC_VOLTAGE * input.MC_CURRENT) / 1000;
-                torque = THROTTLE_AVG / 10;
 
                 if(MC_POWER > POWER_LIMIT) {
-                    torque -= (MC_POWER - POWER_LIMIT) * (MC_POWER - POWER_LIMIT);
+                    output.MC_TORQUE -= (MC_POWER - POWER_LIMIT) * (MC_POWER - POWER_LIMIT);
                 }
                 
-                mc_torque_request(torque);
+                if(output.MC_TORQUE > TORQUE_MAX) {
+                    output.MC_TORQUE = TORQUE_MAX;
+                } else if (output.MC_TORQUE < TORQUE_MIN) {
+                    output.MC_TORQUE = TORQUE_MIN;
+                }
+            
+                if((input.MC_EN == DIGITAL_LOW) 
+                   || input.MC_POST_FAULT 
+                   || input.MC_RUN_FAULT 
+                   || (output.AIR_POS == DIGITAL_LOW) 
+                   || (output.AIR_NEG == DIGITAL_LOW) 
+                   || ((THROTTLE_AVG > THROTTLE_HIGH_LIMIT) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
+                   || !brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
+                    state = STATE_STANDBY;
+                }
             } else {
                 output.RTDS = DIGITAL_HIGH;
-                mc_torque_request(0);
+                output.MC_TORQUE = TORQUE_MIN;
                 timer++;
-            }
-
-            if((input.MC_EN == DIGITAL_LOW) 
-               || input.MC_POST_FAULT 
-               || input.MC_RUN_FAULT 
-               || (output.AIR_POS == DIGITAL_LOW) 
-               || (output.AIR_NEG == DIGITAL_LOW) 
-               || ((THROTTLE_AVG > THROTTLE_HIGH_LIMIT) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
-               || !brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
-                state = STATE_STANDBY;
             }
 
             break;
@@ -171,11 +175,11 @@ void VCU::shutdown_loop() {
             output.PRECHARGE = DIGITAL_LOW;
             output.DISCHARGE = DIGITAL_LOW;
             output.FAN_EN = DIGITAL_LOW;
-            output.FAN_PWM = 0;
+            output.FAN_PWM = PWM_MIN;
 
             if(input.TS_READY_SENSE == DIGITAL_HIGH) {
-                state = STATE_PRECHARGE;
                 output.PRECHARGE_FAILED = DIGITAL_LOW;
+                state = STATE_PRECHARGE;
                 timer = 0;
             }
 
@@ -189,12 +193,12 @@ void VCU::shutdown_loop() {
             output.PRECHARGE = DIGITAL_HIGH;
             output.DISCHARGE = DIGITAL_HIGH;
             output.FAN_EN = DIGITAL_LOW;
-            output.FAN_PWM = 0;
+            output.FAN_PWM = PWM_MIN;
 
             if(((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE < ((input.BMS_VOLTAGE * BATTERY_LIMIT) / 100)) && (input.CHARGER_CONNECTED == DIGITAL_LOW)) 
                || (input.TS_READY_SENSE == DIGITAL_LOW)) {
-                state = STATE_AIR_OFF;
                 output.PRECHARGE_FAILED = DIGITAL_HIGH;
+                state = STATE_AIR_OFF;
             } else if((((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE > ((input.BMS_VOLTAGE * BATTERY_LIMIT) / 100))) || (input.CHARGER_CONNECTED == DIGITAL_HIGH)) 
                       && (input.TS_READY_SENSE == DIGITAL_HIGH)) {
                 state = STATE_AIR_ON;
@@ -212,17 +216,17 @@ void VCU::shutdown_loop() {
             output.PRECHARGE = DIGITAL_LOW;
             output.DISCHARGE = DIGITAL_HIGH;
             output.FAN_EN = DIGITAL_LOW;
-            output.FAN_PWM = 0;
+            output.FAN_PWM = PWM_MIN;
 
             if(input.TS_READY_SENSE == DIGITAL_LOW) {
                 state = STATE_AIR_OFF;
+            } else if((input.CHARGER_CONNECTED == DIGITAL_HIGH) 
+                      && (input.TS_READY_SENSE == DIGITAL_HIGH)) {
+                state = STATE_READY_TO_CHARGE;
             } else if((input.CHARGER_CONNECTED == DIGITAL_LOW) 
                       && (input.TS_READY_SENSE == DIGITAL_HIGH)) {
                 state = STATE_READY_TO_DRIVE;
                 timer = 0;
-            } else if((input.CHARGER_CONNECTED == DIGITAL_HIGH) 
-                      && (input.TS_READY_SENSE == DIGITAL_HIGH)) {
-                state = STATE_READY_TO_CHARGE;
             }
 
             break;
@@ -235,7 +239,7 @@ void VCU::shutdown_loop() {
             output.PRECHARGE = DIGITAL_LOW;
             output.DISCHARGE = DIGITAL_HIGH;
             output.FAN_EN = DIGITAL_LOW;
-            output.FAN_PWM = 0;
+            output.FAN_PWM = PWM_MIN;
 
             if(input.TS_READY_SENSE == DIGITAL_LOW) {
                 state = STATE_AIR_OFF;

@@ -10,8 +10,6 @@
 VCU vcu;
 
 int main() {
-    uint8_t data[8];
-
     // initialize board hardware
     BOARD_InitBootPins();
     BOARD_InitBootClocks();
@@ -22,33 +20,25 @@ int main() {
     // initialize system timer
     SysTick_Config(TIMER_PERIOD);
     
-    // TODO - time main loop to verify VCU frequency
     while(true) {
         if(vcu.flag) {
-            data[0] = 0x00;
-            data[1] = 0x11;
-            data[2] = 0x22;
-            data[3] = 0x33;
-            data[4] = 0x44;
-            data[5] = 0x55;
-            data[6] = 0x66;
-            data[7] = 0x77;
-
-            can_send(GEN_CAN_CHANNEL, 0x0AA, data);
+            vcu.output.GENERAL_PURPOSE_1 = DIGITAL_HIGH;
 
             // read inputs
-            //input_map();
+            input_map();
 
             // core logic
-            //vcu.motor_loop();
-            //vcu.shutdown_loop();
-            //vcu.redundancy_loop();
+            vcu.motor_loop();
+            vcu.shutdown_loop();
+            vcu.redundancy_loop();
 
             // write outputs
-            //output_map();
+            output_map();
             
             // spinlock to synchronize thread
             vcu.flag = false;
+            
+            vcu.output.GENERAL_PURPOSE_1 = DIGITAL_LOW;
         }
     }
 
@@ -59,6 +49,12 @@ extern "C" {
 
 void SysTick_Handler() { 
     vcu.flag = true;
+
+    if(vcu.output.GENERAL_PURPOSE_2 == DIGITAL_HIGH) {
+        vcu.output.GENERAL_PURPOSE_2 = DIGITAL_LOW;
+    } else {
+        vcu.output.GENERAL_PURPOSE_2 = DIGITAL_HIGH;
+    }
 }
 
 }

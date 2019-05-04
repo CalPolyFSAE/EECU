@@ -10,11 +10,11 @@ using namespace BSP;
 
 extern VCU vcu;
 
-// callback to process CAN messages on the general bus
+// callback to process messages on the general CAN bus
 static void gen_can_callback() {
     uint8_t buffer[8];
 
-    switch(can_receive(GEN_CAN_CHANNEL, buffer)) {
+    switch(can_receive(GEN_CAN_BUS, buffer)) {
         // TODO - read CHARGER_CONNECTECD
         // TODO - read BMS_VOLTAGE
         // TODO - read BMS_TEMPERATURE
@@ -23,7 +23,7 @@ static void gen_can_callback() {
     }
 }
 
-// callback to process CAN messages on the motor controller bus
+// callback to process messages on the motor controller CAN bus
 static void mc_can_callback() {
     mc_receive_broadcast_message();
 }
@@ -91,16 +91,27 @@ void init_io() {
     gpio::GPIO::ConstructStatic();
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
     gpio.in_dir(gpio::PortE, 6);
+    PORTE->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortA, 1);
+    PORTA->PCR[1] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortB, 6);
+    PORTB->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortE, 2);
+    PORTE->PCR[2] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortB, 7);
+    PORTB->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortE, 3);
+    PORTE->PCR[3] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortD, 16);
+    PORTD->PCR[16] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortC, 8);
+    PORTC->PCR[8] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortD, 6);
+    PORTD->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortD, 5);
+    PORTD->PCR[5] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortD, 7);
+    PORTD->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.out_dir(gpio::PortD, 4);
     gpio.out_dir(gpio::PortB, 1);
     gpio.out_dir(gpio::PortB, 0);
@@ -123,10 +134,10 @@ void init_io() {
     can::CANlight &can = can::CANlight::StaticClass();
     canx_config.baudRate = GEN_CAN_BAUD_RATE;
     canx_config.callback = gen_can_callback;
-    can.init(GEN_CAN_CHANNEL, &canx_config);
+    can.init(GEN_CAN_BUS, &canx_config);
     canx_config.baudRate = MC_CAN_BAUD_RATE;
     canx_config.callback = mc_can_callback;
-    can.init(MC_CAN_CHANNEL, &canx_config);
+    can.init(MC_CAN_BUS, &canx_config);
 
     // initialize PWM driver
     pwm_init();
@@ -158,6 +169,20 @@ void input_map() {
 // writes VCU output signals to GPIO pins
 void output_map() {
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
+    uint8_t buffer[8];
+    
+    buffer[0] = vcu.input.LATCH_SENSE;
+    buffer[1] = vcu.output.PRECHARGE_FAILED;
+    buffer[2] = vcu.output.DISCHARGE;
+    buffer[3] = vcu.output.PRECHARGE;
+    buffer[4] = vcu.output.DCDC_DISABLE;
+    buffer[5] = vcu.output.PUMP_EN;
+    buffer[6] = vcu.output.AIR_NEG;
+    buffer[7] = vcu.output.AIR_POS;
+    
+    can_send(GEN_CAN_BUS, VCU_PRECHARGE, buffer);
+    mc_torque_request(vcu.output.MC_TORQUE);
+    pwm_set(vcu.output.FAN_PWM);
 
     vcu.output.RTDS ? gpio.set(gpio::PortD, 4) : gpio.clear(gpio::PortD, 4);
     vcu.output.BRAKE_LIGHT ? gpio.set(gpio::PortB, 1) : gpio.clear(gpio::PortB, 1);
@@ -172,26 +197,10 @@ void output_map() {
     vcu.output.FAN_EN ? gpio.clear(gpio::PortD, 0) : gpio.set(gpio::PortD, 0);
     vcu.output.GENERAL_PURPOSE_1 ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
     vcu.output.GENERAL_PURPOSE_2 ? gpio.set(gpio::PortD, 2) : gpio.clear(gpio::PortD, 2);
-    
-    // TODO - write LATCH_SIZE
-    // TODO - write PRECHARGE_FAILED
-
-    pwm_set(vcu.output.FAN_PWM);
-
 }
 
-// receives a CAN message from the specified channel
-uint8_t can_receive(uint8_t channel, uint8_t *data) {
-    can::CANlight &can = can::CANlight::StaticClass();
-    can::CANlight::frame frame = can.readrx(channel);
-
-    memcpy(data, frame.data, sizeof(frame.data));
-
-    return(frame.id);
-}
-
-// sends a CAN message on the specified channel
-void can_send(uint8_t channel, uint32_t address, uint8_t *data) {
+// sends a CAN message on the specified bus
+void can_send(uint8_t bus, uint32_t address, uint8_t *data) {
     can::CANlight &can = can::CANlight::StaticClass();
     can::CANlight::frame frame;
 
@@ -200,5 +209,15 @@ void can_send(uint8_t channel, uint32_t address, uint8_t *data) {
     frame.dlc = 8;
     memcpy(frame.data, data, sizeof(frame.data));
 
-    can.tx(channel, frame);
+    can.tx(bus, frame);
+}
+
+// receives a CAN message from the specified bus
+uint8_t can_receive(uint8_t bus, uint8_t *data) {
+    can::CANlight &can = can::CANlight::StaticClass();
+    can::CANlight::frame frame = can.readrx(bus);
+
+    memcpy(data, frame.data, sizeof(frame.data));
+
+    return(frame.id);
 }

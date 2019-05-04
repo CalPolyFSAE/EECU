@@ -32,6 +32,19 @@
 #define BATTERY_LIMIT           90
 #define POWER_LIMIT             70
 
+#define TORQUE_DIS  -1
+#define TORQUE_MIN   0
+#define TORQUE_MAX  10
+
+// TODO - implement logging functions
+#define VCU_MC          0x100
+#define VCU_THROTTLES   0x101
+#define VCU_BRAKES      0x102
+#define VCU_WHEELS      0x103
+#define VCU_CURRENT     0x104
+#define VCU_PRECHARGE   0x105
+#define VCU_FAULTS      0x106
+
 enum DIGITAL {
     DIGITAL_LOW,
     DIGITAL_HIGH,
@@ -76,6 +89,7 @@ typedef struct {
 } input_t;
 
 typedef struct {
+    int16_t MC_TORQUE;          // CAN 1
     uint8_t RTDS;               // GPIO D4
     uint8_t BRAKE_LIGHT;        // GPIO B1
     uint8_t AIR_POS;            // GPIO B0
