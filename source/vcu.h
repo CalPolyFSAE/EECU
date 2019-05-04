@@ -34,16 +34,7 @@
 
 #define TORQUE_DIS  -1
 #define TORQUE_MIN   0
-#define TORQUE_MAX  10
-
-// TODO - implement logging functions
-#define VCU_MC          0x100
-#define VCU_THROTTLES   0x101
-#define VCU_BRAKES      0x102
-#define VCU_WHEELS      0x103
-#define VCU_CURRENT     0x104
-#define VCU_PRECHARGE   0x105
-#define VCU_FAULTS      0x106
+#define TORQUE_MAX  50
 
 enum DIGITAL {
     DIGITAL_LOW,
@@ -67,8 +58,8 @@ typedef struct {
     int16_t MC_CURRENT;         // CAN 1
     int16_t MC_VOLTAGE;         // CAN 1
     int16_t MC_SPEED;           // CAN 1
-    uint32_t THROTTLE_1;        // ADC 0.14
-    uint32_t THROTTLE_2;        // ADC 0.15
+    int8_t THROTTLE_1;          // ADC 0.14
+    int8_t THROTTLE_2;          // ADC 0.15
     uint8_t LATCH_SENSE;        // GPIO A1
     uint8_t TS_READY_SENSE;     // GPIO B6
     uint8_t TS_RDY;             // GPIO E2
@@ -82,10 +73,10 @@ typedef struct {
     uint32_t CURRENT_SENSE;     // ADC 0.6
     uint32_t BRAKE_FRONT;       // ADC 0.7
     uint32_t BRAKE_REAR;        // ADC 0.12
-    uint32_t WHEEL_SPEED_FR;    // ADC 0.13
-    uint8_t WHEEL_SPEED_FL;     // GPIO D6
-    uint8_t WHEEL_SPEED_RR;     // GPIO D5
-    uint8_t WHEEL_SPEED_RL;     // GPIO D7
+    uint32_t WHEEL_SPEED_FR;    // GPIO C15
+    uint32_t WHEEL_SPEED_FL;    // GPIO D6
+    uint32_t WHEEL_SPEED_RR;    // GPIO D5
+    uint32_t WHEEL_SPEED_RL;    // GPIO D7
 } input_t;
 
 typedef struct {

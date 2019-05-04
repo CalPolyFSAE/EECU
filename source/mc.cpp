@@ -8,14 +8,14 @@ extern VCU vcu;
 void mc_send_command_message(uint16_t torque, uint16_t speed, uint8_t direction, uint8_t settings, uint16_t limit) {
     uint8_t buffer[8];
 
-    buffer[0] = torque & 0xFF;
-    buffer[1] = (torque >> 8) & 0xFF;
-    buffer[2] = speed & 0xFF;
-    buffer[3] = (speed >> 8) & 0xFF;
-    buffer[4] = direction & 0x01;
-    buffer[5] = settings & 0x03;
-    buffer[6] = limit & 0xFF;
     buffer[7] = (limit >> 8) & 0xFF;
+    buffer[6] = limit & 0xFF;
+    buffer[5] = settings & 0x03;
+    buffer[4] = direction & 0x01;
+    buffer[3] = (speed >> 8) & 0xFF;
+    buffer[2] = speed & 0xFF;
+    buffer[1] = (torque >> 8) & 0xFF;
+    buffer[0] = torque & 0xFF;
 
     can_send(MC_CAN_BUS, MC_COMMAND_MESSAGE, buffer);
 }
@@ -24,13 +24,14 @@ void mc_send_command_message(uint16_t torque, uint16_t speed, uint8_t direction,
 void mc_send_parameter_message(uint16_t address, uint8_t write, uint16_t data) {
     uint8_t buffer[8];
 
-    buffer[0] = address & 0xFF;
-    buffer[1] = (address >> 8) & 0xFF;
-    buffer[2] = write & 0x01;
-    buffer[4] = data & 0xFF;
-    buffer[5] = (data >> 8) & 0xFF;
-    buffer[6] = 0x00;
     buffer[7] = 0x00;
+    buffer[6] = 0x00;
+    buffer[5] = (data >> 8) & 0xFF;
+    buffer[4] = data & 0xFF;
+    buffer[3] = 0x00;
+    buffer[2] = write & 0x01;
+    buffer[1] = (address >> 8) & 0xFF;
+    buffer[0] = address & 0xFF;
 
     can_send(MC_CAN_BUS, MC_PARAMETER_MESSAGE_SEND, buffer);
 }
@@ -67,7 +68,7 @@ void mc_torque_request(int16_t torque) {
     if(torque < 0) {
         mc_send_command_message(0, 0, 0, 0, 0);
     } else {
-        mc_send_command_message(torque * 10, 0, 1, 1, 0);
+        mc_send_command_message(torque, 0, 1, 1, 0);
     }
 }
 

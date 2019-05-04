@@ -2,23 +2,6 @@
 #include "mc.h"
 #include "io.h"
 
-// averages throttles and converts to percentage
-static uint8_t throttle_average(uint32_t positive, uint32_t negative) {
-    int32_t throttle[2];
-    int32_t average;
-
-    throttle[0] = (100 * (positive - THROTTLE_POS_MIN)) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
-    throttle[1] = (100 * (negative - THROTTLE_NEG_MAX)) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
-    average = (throttle[0] + throttle[1]) / 2;
-
-    if(average > 100) {
-        return(100);
-    } else if(average < 0) {
-        return(0);
-    } else {
-        return(average);
-    }
-}
 
 // checks if brakes are active
 static bool brakes_active(uint32_t front, uint32_t rear) {
@@ -32,6 +15,15 @@ static bool brakes_active(uint32_t front, uint32_t rear) {
 // checks if brakes are valid
 static bool brakes_valid(uint32_t front, uint32_t rear) {
     if((front > BRAKE_MIN) && (front < BRAKE_MAX) && (rear > BRAKE_MIN) && (rear < BRAKE_MAX)) {
+        return(true);
+    } else {
+        return(false);
+    }
+}
+
+// checks if throttles are valid
+static bool throttles_valid(int8_t throttle_1, int8_t throttle_2) {
+    if(((throttle_1 - throttle_2) < 10) && ((throttle_1 - throttle_2) > -10)) {
         return(true);
     } else {
         return(false);
@@ -90,13 +82,16 @@ VCU::VCU() {
 void VCU::motor_loop() {
     static state_t state = STATE_STANDBY;
     static uint32_t timer = 0;
-    uint8_t THROTTLE_AVG;
+    int8_t THROTTLE_AVG;
     uint8_t MC_POWER;
 
-    THROTTLE_AVG = throttle_average(input.THROTTLE_1, input.THROTTLE_2);
+    THROTTLE_AVG = (input.THROTTLE_1 + input.THROTTLE_2) / 2;
 
-    // TODO - rules T6.2.3 and EV2.4
-    // TODO - calculate wheel speeds
+    if(THROTTLE_AVG > 100) {
+        THROTTLE_AVG = 100;
+    } else if(THROTTLE_AVG < 0) {
+        THROTTLE_AVG = 0;
+    }
     
     switch(state) {
         case STATE_STANDBY:
@@ -109,7 +104,8 @@ void VCU::motor_loop() {
                && (output.AIR_POS == DIGITAL_HIGH) 
                && (output.AIR_NEG == DIGITAL_HIGH) 
                && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR) 
-               && brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
+               && brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)
+               && throttles_valid(input.THROTTLE_1, input.THROTTLE_2)) {
                 mc_clear_faults();
                 state = STATE_DRIVING;
                 timer = 0;
@@ -139,7 +135,8 @@ void VCU::motor_loop() {
                    || (output.AIR_POS == DIGITAL_LOW) 
                    || (output.AIR_NEG == DIGITAL_LOW) 
                    || ((THROTTLE_AVG > THROTTLE_HIGH_LIMIT) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
-                   || !brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
+                   || !brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)
+                   || !throttles_valid(input.THROTTLE_1, input.THROTTLE_2)) {
                     state = STATE_STANDBY;
                 }
             } else {

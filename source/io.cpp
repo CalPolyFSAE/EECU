@@ -28,6 +28,54 @@ static void mc_can_callback() {
     mc_receive_broadcast_message();
 }
 
+// logs precharge signals
+static void log_precharge(uint8_t bus) {
+    uint8_t buffer[8];
+    
+    buffer[7] = vcu.output.AIR_POS;
+    buffer[6] = vcu.output.AIR_NEG;
+    buffer[5] = vcu.output.PRECHARGE;
+    buffer[4] = vcu.output.DISCHARGE;
+    buffer[3] = vcu.output.PUMP_EN;
+    buffer[2] = vcu.output.DCDC_DISABLE;
+    buffer[1] = vcu.input.LATCH_SENSE;
+    buffer[0] = vcu.output.PRECHARGE_FAILED;
+
+    can_send(bus, VCU_PRECHARGE, buffer);
+}
+
+// logs driver signals
+static void log_driver(uint8_t bus) {
+    uint8_t buffer[8];
+    
+    buffer[7] = (vcu.input.BRAKE_FRONT >> 16) & 0xFF;
+    buffer[6] = (vcu.input.BRAKE_FRONT >> 8) & 0xFF;
+    buffer[5] = vcu.input.BRAKE_FRONT & 0xFF;
+    buffer[4] = (vcu.input.BRAKE_REAR >> 16) & 0xFF;
+    buffer[3] = (vcu.input.BRAKE_REAR >> 8) & 0xFF;
+    buffer[2] = vcu.input.BRAKE_REAR & 0xFF;
+    buffer[1] = vcu.input.THROTTLE_1;
+    buffer[0] = vcu.input.THROTTLE_2;
+
+    can_send(bus, VCU_DRIVER, buffer);
+}
+
+// logs fault signals
+static void log_faults(uint8_t bus) {
+    uint8_t buffer[8];
+    
+    buffer[7] = 0x00;
+    buffer[6] = 0x00;
+    buffer[5] = 0x00;
+    buffer[4] = vcu.input.IMD_OK;
+    buffer[3] = vcu.input.BMS_OK;
+    buffer[2] = vcu.input.BSPD_OK;
+    buffer[1] = vcu.output.REDUNDANT_1;
+    buffer[0] = vcu.output.REDUNDANT_2;
+    
+    can_send(bus, VCU_FAULTS, buffer);
+}
+
 // initializes the PWM driver
 static void pwm_init() {
     flexio_config_t config;
@@ -106,6 +154,8 @@ void init_io() {
     PORTD->PCR[16] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortC, 8);
     PORTC->PCR[8] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    gpio.in_dir(gpio::PortC, 15);
+    PORTC->PCR[15] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortD, 6);
     PORTD->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortD, 5);
@@ -148,8 +198,8 @@ void input_map() {
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
     adc::ADC &adc = adc::ADC::ADC::StaticClass();
 
-    vcu.input.THROTTLE_1 = adc.read(ADC0, 14);
-    vcu.input.THROTTLE_2 = adc.read(ADC0, 15);
+    vcu.input.THROTTLE_1 = (100 * (adc.read(ADC0, 14) - THROTTLE_POS_MIN)) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
+    vcu.input.THROTTLE_2 = (100 * (adc.read(ADC0, 15) - THROTTLE_NEG_MAX)) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
     vcu.input.LATCH_SENSE = gpio.read(gpio::PortA, 1);
     vcu.input.TS_READY_SENSE = gpio.read(gpio::PortB, 6);
     vcu.input.TS_RDY = gpio.read(gpio::PortE, 2);
@@ -160,30 +210,21 @@ void input_map() {
     vcu.input.CURRENT_SENSE = adc.read(ADC0, 6);
     vcu.input.BRAKE_FRONT = adc.read(ADC0, 7);
     vcu.input.BRAKE_REAR = adc.read(ADC0, 12);
-    vcu.input.WHEEL_SPEED_FR = adc.read(ADC0, 13);
-    vcu.input.WHEEL_SPEED_FL = gpio.read(gpio::PortD, 6);
-    vcu.input.WHEEL_SPEED_RR = gpio.read(gpio::PortD, 5);
-    vcu.input.WHEEL_SPEED_RL = gpio.read(gpio::PortD, 7);
+
+    // TODO - calculate wheel speeds
 }
 
 // writes VCU output signals to GPIO pins
 void output_map() {
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
-    uint8_t buffer[8];
     
-    buffer[0] = vcu.input.LATCH_SENSE;
-    buffer[1] = vcu.output.PRECHARGE_FAILED;
-    buffer[2] = vcu.output.DISCHARGE;
-    buffer[3] = vcu.output.PRECHARGE;
-    buffer[4] = vcu.output.DCDC_DISABLE;
-    buffer[5] = vcu.output.PUMP_EN;
-    buffer[6] = vcu.output.AIR_NEG;
-    buffer[7] = vcu.output.AIR_POS;
+    log_precharge(MC_CAN_BUS);
+    log_driver(MC_CAN_BUS);
+    log_faults(MC_CAN_BUS);
     
-    can_send(GEN_CAN_BUS, VCU_PRECHARGE, buffer);
     mc_torque_request(vcu.output.MC_TORQUE);
     pwm_set(vcu.output.FAN_PWM);
-
+    
     vcu.output.RTDS ? gpio.set(gpio::PortD, 4) : gpio.clear(gpio::PortD, 4);
     vcu.output.BRAKE_LIGHT ? gpio.set(gpio::PortB, 1) : gpio.clear(gpio::PortB, 1);
     vcu.output.AIR_POS ? gpio.set(gpio::PortB, 0) : gpio.clear(gpio::PortB, 0);
