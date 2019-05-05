@@ -277,7 +277,7 @@ void init_io() {
     // initialize timer driver
     timer_init();
 
-    // intialize PWM driver
+    // initialize PWM driver
     pwm_init();
 }
 
