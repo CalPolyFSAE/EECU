@@ -8,10 +8,10 @@
 #define VCU_FAULTS      0x102
 
 #define GEN_CAN_BUS 0
-#define GEN_CAN_BAUD_RATE 500000
+#define GEN_CAN_BAUD_RATE 1000000
 
 #define MC_CAN_BUS 1
-#define MC_CAN_BAUD_RATE 500000
+#define MC_CAN_BAUD_RATE 1000000
 
 #define PWM_FREQUENCY 25000
 #define PWM_MIN  5
@@ -21,6 +21,6 @@ void init_io();
 void input_map();
 void output_map();
 void can_send(uint8_t bus, uint32_t address, uint8_t *data);
-uint8_t can_receive(uint8_t bus, uint8_t *data);
+uint32_t can_receive(uint8_t bus, uint8_t *data);
 
 #endif

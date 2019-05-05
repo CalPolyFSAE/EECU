@@ -65,7 +65,7 @@ typedef struct {
     uint8_t TS_RDY;             // GPIO E2
     uint8_t TS_LIVE;            // GPIO B7
     uint8_t CHARGER_CONNECTED;  // CAN 0
-    int16_t BMS_VOLTAGE;        // CAN 0
+    int32_t BMS_VOLTAGE;        // CAN 0
     int16_t BMS_TEMPERATURE;    // CAN 0
     uint8_t BMS_OK;             // GPIO E3
     uint8_t IMD_OK;             // GPIO D16

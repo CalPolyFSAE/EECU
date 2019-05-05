@@ -174,10 +174,16 @@ void VCU::shutdown_loop() {
             output.FAN_EN = DIGITAL_LOW;
             output.FAN_PWM = PWM_MIN;
 
-            if(input.TS_READY_SENSE == DIGITAL_HIGH) {
+            if(input.TS_READY_SENSE == DIGITAL_HIGH
+                    && output.PRECHARGE_FAILED == DIGITAL_LOW) {
                 output.PRECHARGE_FAILED = DIGITAL_LOW;
                 state = STATE_PRECHARGE;
                 timer = 0;
+            }
+
+            if(output.PRECHARGE_FAILED == DIGITAL_HIGH
+                    && input.TS_READY_SENSE == DIGITAL_LOW) {
+                output.PRECHARGE_FAILED = DIGITAL_LOW;
             }
 
             break;

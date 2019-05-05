@@ -17,6 +17,10 @@ static void gen_can_callback() {
     switch(can_receive(GEN_CAN_BUS, buffer)) {
         // TODO - read CHARGER_CONNECTECD
         // TODO - read BMS_VOLTAGE
+        case 0x314:
+            vcu.input.BMS_VOLTAGE = (buffer[2]<<16)|(buffer[1]<<8)|(buffer[0]);
+            break;
+
         // TODO - read BMS_TEMPERATURE
         default:
             break;
@@ -254,11 +258,11 @@ void can_send(uint8_t bus, uint32_t address, uint8_t *data) {
 }
 
 // receives a CAN message from the specified bus
-uint8_t can_receive(uint8_t bus, uint8_t *data) {
+uint32_t can_receive(uint8_t bus, uint8_t *data) {
     can::CANlight &can = can::CANlight::StaticClass();
     can::CANlight::frame frame = can.readrx(bus);
 
-    memcpy(data, frame.data, sizeof(frame.data));
+    memcpy(data, frame.data, 8);
 
     return(frame.id);
 }
