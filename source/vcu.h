@@ -73,10 +73,10 @@ typedef struct {
     uint32_t CURRENT_SENSE;     // ADC 0.6
     uint32_t BRAKE_FRONT;       // ADC 0.7
     uint32_t BRAKE_REAR;        // ADC 0.12
-    uint32_t WHEEL_SPEED_FR;    // GPIO C15
-    uint32_t WHEEL_SPEED_FL;    // GPIO D6
-    uint32_t WHEEL_SPEED_RR;    // GPIO D5
-    uint32_t WHEEL_SPEED_RL;    // GPIO D7
+    uint16_t WHEEL_SPEED_FR;    // GPIO C15
+    uint16_t WHEEL_SPEED_FL;    // GPIO D6
+    uint16_t WHEEL_SPEED_RR;    // GPIO D5
+    uint16_t WHEEL_SPEED_RL;    // GPIO D7
 } input_t;
 
 typedef struct {

@@ -154,7 +154,7 @@
                   <clock_output id="PCC.PCC_ADC1_CLK.outFreq" value="30 MHz" locked="false" accuracy=""/>
                   <clock_output id="PCC.PCC_ADC2_CLK.outFreq" value="30 MHz" locked="false" accuracy=""/>
                   <clock_output id="PCC.PCC_FLEXIO_CLK.outFreq" value="500 kHz" locked="false" accuracy=""/>
-                  <clock_output id="PCC.PCC_FTM0_CLK.outFreq" value="60 MHz" locked="false" accuracy=""/>
+                  <clock_output id="PCC.PCC_FTM0_CLK.outFreq" value="8 MHz" locked="false" accuracy=""/>
                   <clock_output id="PCC.PCC_FTM1_CLK.outFreq" value="60 MHz" locked="false" accuracy=""/>
                   <clock_output id="PCC.PCC_FTM2_CLK.outFreq" value="60 MHz" locked="false" accuracy=""/>
                   <clock_output id="PCC.PCC_FTM3_CLK.outFreq" value="60 MHz" locked="false" accuracy=""/>
@@ -179,7 +179,7 @@
                   <setting id="PCC.PCC_ADC1_SEL.sel" value="SCG.FIRCDIV2_CLK" locked="false"/>
                   <setting id="PCC.PCC_ADC2_SEL.sel" value="SCG.FIRCDIV2_CLK" locked="false"/>
                   <setting id="PCC.PCC_FLEXIO_SEL.sel" value="SCG.SIRCDIV2_CLK" locked="false"/>
-                  <setting id="PCC.PCC_FTM0_SEL.sel" value="SCG.FIRCDIV1_CLK" locked="false"/>
+                  <setting id="PCC.PCC_FTM0_SEL.sel" value="SCG.SIRCDIV1_CLK" locked="false"/>
                   <setting id="PCC.PCC_FTM1_SEL.sel" value="SCG.FIRCDIV1_CLK" locked="false"/>
                   <setting id="PCC.PCC_FTM2_SEL.sel" value="SCG.FIRCDIV1_CLK" locked="false"/>
                   <setting id="PCC.PCC_FTM3_SEL.sel" value="SCG.FIRCDIV1_CLK" locked="false"/>

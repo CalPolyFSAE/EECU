@@ -2,7 +2,6 @@
 #include "mc.h"
 #include "io.h"
 
-
 // checks if brakes are active
 static bool brakes_active(uint32_t front, uint32_t rear) {
     if((front > BFA) || (rear > BRA)) {
@@ -174,16 +173,13 @@ void VCU::shutdown_loop() {
             output.FAN_EN = DIGITAL_LOW;
             output.FAN_PWM = PWM_MIN;
 
-            if(input.TS_READY_SENSE == DIGITAL_HIGH
-                    && output.PRECHARGE_FAILED == DIGITAL_LOW) {
+            if(input.TS_READY_SENSE == DIGITAL_LOW
+               && output.PRECHARGE_FAILED == DIGITAL_HIGH) {
                 output.PRECHARGE_FAILED = DIGITAL_LOW;
+            } else if(input.TS_READY_SENSE == DIGITAL_HIGH
+                      && output.PRECHARGE_FAILED == DIGITAL_LOW) {
                 state = STATE_PRECHARGE;
                 timer = 0;
-            }
-
-            if(output.PRECHARGE_FAILED == DIGITAL_HIGH
-                    && input.TS_READY_SENSE == DIGITAL_LOW) {
-                output.PRECHARGE_FAILED = DIGITAL_LOW;
             }
 
             break;

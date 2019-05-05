@@ -7,15 +7,22 @@
 #define VCU_DRIVER      0x101
 #define VCU_FAULTS      0x102
 
+#define BMS_ID          0x314
+
 #define GEN_CAN_BUS 0
-#define GEN_CAN_BAUD_RATE 1000000
+#define GEN_CAN_BAUD_RATE 500000
 
 #define MC_CAN_BUS 1
-#define MC_CAN_BAUD_RATE 1000000
+#define MC_CAN_BAUD_RATE 500000
 
 #define PWM_FREQUENCY 25000
 #define PWM_MIN  5
 #define PWM_MAX 95
+
+#define PIN_FR  15
+#define PIN_FL   6
+#define PIN_RR   5
+#define PIN_RL   7
 
 void init_io();
 void input_map();

@@ -120,7 +120,7 @@ outputs:
 - {id: PCC.PCC_ADC1_CLK.outFreq, value: 30 MHz}
 - {id: PCC.PCC_ADC2_CLK.outFreq, value: 30 MHz}
 - {id: PCC.PCC_FLEXIO_CLK.outFreq, value: 500 kHz}
-- {id: PCC.PCC_FTM0_CLK.outFreq, value: 60 MHz}
+- {id: PCC.PCC_FTM0_CLK.outFreq, value: 8 MHz}
 - {id: PCC.PCC_FTM1_CLK.outFreq, value: 60 MHz}
 - {id: PCC.PCC_FTM2_CLK.outFreq, value: 60 MHz}
 - {id: PCC.PCC_FTM3_CLK.outFreq, value: 60 MHz}
@@ -144,7 +144,7 @@ settings:
 - {id: PCC.PCC_ADC1_SEL.sel, value: SCG.FIRCDIV2_CLK}
 - {id: PCC.PCC_ADC2_SEL.sel, value: SCG.FIRCDIV2_CLK}
 - {id: PCC.PCC_FLEXIO_SEL.sel, value: SCG.SIRCDIV2_CLK}
-- {id: PCC.PCC_FTM0_SEL.sel, value: SCG.FIRCDIV1_CLK}
+- {id: PCC.PCC_FTM0_SEL.sel, value: SCG.SIRCDIV1_CLK}
 - {id: PCC.PCC_FTM1_SEL.sel, value: SCG.FIRCDIV1_CLK}
 - {id: PCC.PCC_FTM2_SEL.sel, value: SCG.FIRCDIV1_CLK}
 - {id: PCC.PCC_FTM3_SEL.sel, value: SCG.FIRCDIV1_CLK}
@@ -271,7 +271,7 @@ void BOARD_BootClockRUN(void)
     /* Set PCC LPIT0 selection */
     CLOCK_SetIpSrc(kCLOCK_Lpit0, kCLOCK_IpSrcFircAsync);
     /* Set PCC FTM0 selection */
-    CLOCK_SetIpSrc(kCLOCK_Ftm0, kCLOCK_IpSrcFircAsync);
+    CLOCK_SetIpSrc(kCLOCK_Ftm0, kCLOCK_IpSrcSircAsync);
     /* Set PCC FTM1 selection */
     CLOCK_SetIpSrc(kCLOCK_Ftm1, kCLOCK_IpSrcFircAsync);
     /* Set PCC FTM2 selection */

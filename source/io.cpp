@@ -4,11 +4,61 @@
 #include "canlight.h"
 #include "adc.h"
 #include "gpio.h"
+#include "fsl_ftm.h"
 #include "fsl_flexio.h"
 
 using namespace BSP;
 
 extern VCU vcu;
+
+// callback to process wheel speed sensors on GPIO pins
+static void wheel_gpio_callback() {
+    static uint16_t timer_fr = 0;
+    static uint16_t timer_fl = 0;
+    static uint16_t timer_rr = 0;
+    static uint16_t timer_rl = 0;
+    uint16_t timer;
+    uint8_t pin;
+
+    gpio::GPIO &gpio = gpio::GPIO::StaticClass();
+    pin = gpio.int_source(gpio::PortC);
+
+    if(pin == 32) {
+        pin = gpio.int_source(gpio::PortD);
+    }
+
+    timer = FTM_GetCurrentTimerCount(FTM0);
+
+    switch(pin) {
+        case PIN_FR:
+            vcu.input.WHEEL_SPEED_FR = timer - timer_fr;
+            timer_fr = timer;
+            gpio.ack_interrupt(gpio::PortC, PIN_FR);
+            break;
+
+        case PIN_FL:
+            vcu.input.WHEEL_SPEED_FL = timer - timer_fl;
+            timer_fl = timer;
+            gpio.ack_interrupt(gpio::PortD, PIN_FL);
+            break;
+
+        case PIN_RR:
+            vcu.input.WHEEL_SPEED_RR = timer - timer_rr;
+            timer_rr = timer;
+            gpio.ack_interrupt(gpio::PortD, PIN_RR);
+            break;
+
+        case PIN_RL:
+            vcu.input.WHEEL_SPEED_RL = timer - timer_rl;
+            timer_rl = timer;
+            gpio.ack_interrupt(gpio::PortD, PIN_RL);
+            break;
+
+        default:
+            break;
+
+    }
+}
 
 // callback to process messages on the general CAN bus
 static void gen_can_callback() {
@@ -17,11 +67,12 @@ static void gen_can_callback() {
     switch(can_receive(GEN_CAN_BUS, buffer)) {
         // TODO - read CHARGER_CONNECTECD
         // TODO - read BMS_VOLTAGE
-        case 0x314:
-            vcu.input.BMS_VOLTAGE = (buffer[2]<<16)|(buffer[1]<<8)|(buffer[0]);
+        // TODO - read BMS_TEMPERATURE
+        
+        case BMS_ID:
+            vcu.input.BMS_VOLTAGE = (buffer[2] << 16) | (buffer[1] << 8) | buffer[0];
             break;
 
-        // TODO - read BMS_TEMPERATURE
         default:
             break;
     }
@@ -78,6 +129,16 @@ static void log_faults(uint8_t bus) {
     buffer[0] = vcu.output.REDUNDANT_2;
     
     can_send(bus, VCU_FAULTS, buffer);
+}
+
+// initializes the timer driver
+static void timer_init() {
+    ftm_config_t config;
+
+    FTM_GetDefaultConfig(&config);
+    config.prescale = kFTM_Prescale_Divide_128;
+    FTM_Init(FTM0, &config);
+    FTM_StartTimer(FTM0, kFTM_SystemClock);
 }
 
 // initializes the PWM driver
@@ -138,34 +199,50 @@ static void pwm_set(uint8_t duty) {
 void init_io() {
     can::canlight_config config;
     can::CANlight::canx_config canx_config;
-
+    
     // initialize GPIO driver
     gpio::GPIO::ConstructStatic();
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
+    
+    // configure GPIO inputs
     gpio.in_dir(gpio::PortE, 6);
-    PORTE->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortA, 1);
-    PORTA->PCR[1] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortB, 6);
-    PORTB->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortE, 2);
-    PORTE->PCR[2] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortB, 7);
-    PORTB->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortE, 3);
-    PORTE->PCR[3] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortD, 16);
-    PORTD->PCR[16] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortC, 8);
-    PORTC->PCR[8] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortC, 15);
-    PORTC->PCR[15] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortD, 6);
-    PORTD->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortD, 5);
-    PORTD->PCR[5] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     gpio.in_dir(gpio::PortD, 7);
+    
+    // enable pull-down resistors on GPIO inputs
+    PORTE->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTA->PCR[1] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTB->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTE->PCR[2] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTB->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTE->PCR[3] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTD->PCR[16] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTC->PCR[8] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTC->PCR[15] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTD->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTD->PCR[5] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     PORTD->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+ 
+    // enable GPIO interrupts
+    gpio.config_interrupt(gpio::PortC, PIN_FR, kPORT_InterruptRisingEdge);
+    gpio.config_interrupt(gpio::PortD, PIN_FL, kPORT_InterruptRisingEdge);
+    gpio.config_interrupt(gpio::PortD, PIN_RR, kPORT_InterruptRisingEdge);
+    gpio.config_interrupt(gpio::PortD, PIN_RL, kPORT_InterruptRisingEdge);
+
+    // configure GPIO callbacks
+    gpio.config_function(gpio::PortC, wheel_gpio_callback);
+    gpio.config_function(gpio::PortD, wheel_gpio_callback);
+
+    // configure GPIO outputs
     gpio.out_dir(gpio::PortD, 4);
     gpio.out_dir(gpio::PortB, 1);
     gpio.out_dir(gpio::PortB, 0);
@@ -179,21 +256,28 @@ void init_io() {
     gpio.out_dir(gpio::PortD, 0);
     gpio.out_dir(gpio::PortA, 7);
     gpio.out_dir(gpio::PortD, 2);
-
+    
     // initialize ADC driver
     adc::ADC::ConstructStatic(NULL);
-
+    
     // initialize CAN driver
     can::CANlight::ConstructStatic(&config);
     can::CANlight &can = can::CANlight::StaticClass();
+    
+    // configure general CAN bus
     canx_config.baudRate = GEN_CAN_BAUD_RATE;
     canx_config.callback = gen_can_callback;
     can.init(GEN_CAN_BUS, &canx_config);
+    
+    // configure motor controller CAN bus
     canx_config.baudRate = MC_CAN_BAUD_RATE;
     canx_config.callback = mc_can_callback;
     can.init(MC_CAN_BUS, &canx_config);
+    
+    // initialize timer driver
+    timer_init();
 
-    // initialize PWM driver
+    // intialize PWM driver
     pwm_init();
 }
 
@@ -202,8 +286,8 @@ void input_map() {
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
     adc::ADC &adc = adc::ADC::ADC::StaticClass();
 
-    vcu.input.THROTTLE_1 = (100 * (adc.read(ADC0, 14) - THROTTLE_POS_MIN)) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
-    vcu.input.THROTTLE_2 = (100 * (adc.read(ADC0, 15) - THROTTLE_NEG_MAX)) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
+    vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
+    vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
     vcu.input.LATCH_SENSE = gpio.read(gpio::PortA, 1);
     vcu.input.TS_READY_SENSE = gpio.read(gpio::PortB, 6);
     vcu.input.TS_RDY = gpio.read(gpio::PortE, 2);
@@ -214,8 +298,6 @@ void input_map() {
     vcu.input.CURRENT_SENSE = adc.read(ADC0, 6);
     vcu.input.BRAKE_FRONT = adc.read(ADC0, 7);
     vcu.input.BRAKE_REAR = adc.read(ADC0, 12);
-
-    // TODO - calculate wheel speeds
 }
 
 // writes VCU output signals to GPIO pins
