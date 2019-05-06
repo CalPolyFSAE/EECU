@@ -53,10 +53,9 @@ static void wheel_gpio_callback() {
             timer_rl = timer;
             gpio.ack_interrupt(gpio::PortD, PIN_RL);
             break;
-
+        
         default:
             break;
-
     }
 }
 
@@ -72,7 +71,7 @@ static void gen_can_callback() {
         case BMS_ID:
             vcu.input.BMS_VOLTAGE = (buffer[2] << 16) | (buffer[1] << 8) | buffer[0];
             break;
-
+    
         default:
             break;
     }
@@ -113,6 +112,22 @@ static void log_driver(uint8_t bus) {
     buffer[0] = vcu.input.THROTTLE_2;
 
     can_send(bus, VCU_DRIVER, buffer);
+}
+
+// logs speed signals
+static void log_speed(uint8_t bus) {
+    uint8_t buffer[8];
+    
+    buffer[7] = (vcu.input.WHEEL_SPEED_FR >> 8) & 0xFF;
+    buffer[6] = vcu.input.WHEEL_SPEED_FR & 0xFF;
+    buffer[5] = (vcu.input.WHEEL_SPEED_FL >> 8) & 0xFF;
+    buffer[4] = vcu.input.WHEEL_SPEED_FL & 0xFF;
+    buffer[3] = (vcu.input.WHEEL_SPEED_RR >> 8) & 0xFF;
+    buffer[2] = vcu.input.WHEEL_SPEED_RR & 0xFF;
+    buffer[1] = (vcu.input.WHEEL_SPEED_RL >> 8) & 0xFF;
+    buffer[0] = vcu.input.WHEEL_SPEED_RL & 0xFF;
+
+    can_send(bus, VCU_SPEED, buffer);
 }
 
 // logs fault signals
@@ -306,6 +321,7 @@ void output_map() {
     
     log_precharge(MC_CAN_BUS);
     log_driver(MC_CAN_BUS);
+    log_speed(MC_CAN_BUS);
     log_faults(MC_CAN_BUS);
     
     mc_torque_request(vcu.output.MC_TORQUE);

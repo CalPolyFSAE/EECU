@@ -1,7 +1,6 @@
 #include "MKE18F16.h"
-#include "board.h"
-#include "pin_mux.h"
 #include "clock_config.h"
+#include "pin_mux.h"
 
 #include "vcu.h"
 #include "mc.h"
@@ -11,8 +10,8 @@ VCU vcu;
 
 int main() {
     // initialize board hardware
-    BOARD_InitBootPins();
     BOARD_InitBootClocks();
+    BOARD_InitBootPins();
 
     // initialize drivers
     init_io();

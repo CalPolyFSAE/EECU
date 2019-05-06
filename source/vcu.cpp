@@ -145,7 +145,7 @@ void VCU::motor_loop() {
             }
 
             break;
-
+    
         default:
             break;
     }
@@ -265,7 +265,7 @@ void VCU::shutdown_loop() {
             }
 
             break;
-
+    
         default:
             break;
     }

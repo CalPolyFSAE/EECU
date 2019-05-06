@@ -5,7 +5,8 @@
 
 #define VCU_PRECHARGE   0x100
 #define VCU_DRIVER      0x101
-#define VCU_FAULTS      0x102
+#define VCU_SPEED       0x102
+#define VCU_FAULTS      0x103
 
 #define BMS_ID          0x314
 
