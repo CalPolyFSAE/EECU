@@ -2,6 +2,35 @@
 #include "mc.h"
 #include "io.h"
 
+// maps a throttle to a torque value
+static int16_t torque_map(int8_t throttle, int8_t power) {
+    int16_t torque;
+
+#ifdef BENCH_TEST
+    torque = (throttle * 50) / 100;
+    
+    if(torque > 50) {
+        torque = TORQUE_MAX;
+    } else if (torque < TORQUE_MIN) {
+        torque = TORQUE_MIN;
+    }
+#else
+    torque = (throttle * TORQUE_MAX) / 100;
+    
+    if(power > POWER_LIMIT) {
+        torque -= (power - POWER_LIMIT) * (power - POWER_LIMIT);
+    }
+    
+    if(torque > TORQUE_MAX) {
+        torque = TORQUE_MAX;
+    } else if (torque < TORQUE_MIN) {
+        torque = TORQUE_MIN;
+    }
+#endif
+
+    return(torque);
+}
+
 // checks if brakes are active
 static bool brakes_active(uint32_t front, uint32_t rear) {
     if((front > BFA) || (rear > BRA)) {
@@ -82,15 +111,8 @@ void VCU::motor_loop() {
     static state_t state = STATE_STANDBY;
     static uint32_t timer = 0;
     int8_t THROTTLE_AVG;
-    uint8_t MC_POWER;
 
     THROTTLE_AVG = (input.THROTTLE_1 + input.THROTTLE_2) / 2;
-
-    if(THROTTLE_AVG > 100) {
-        THROTTLE_AVG = 100;
-    } else if(THROTTLE_AVG < 0) {
-        THROTTLE_AVG = 0;
-    }
     
     switch(state) {
         case STATE_STANDBY:
@@ -115,19 +137,8 @@ void VCU::motor_loop() {
         case STATE_DRIVING:
             if(timer > RTDS_TIME) {
                 output.RTDS = DIGITAL_LOW;
-                output.MC_TORQUE = THROTTLE_AVG / 10;
-                MC_POWER = (input.MC_VOLTAGE * input.MC_CURRENT) / 1000;
+                output.MC_TORQUE = torque_map(THROTTLE_AVG, (input.MC_VOLTAGE * input.MC_CURRENT) / 1000);
 
-                if(MC_POWER > POWER_LIMIT) {
-                    output.MC_TORQUE -= (MC_POWER - POWER_LIMIT) * (MC_POWER - POWER_LIMIT);
-                }
-                
-                if(output.MC_TORQUE > TORQUE_MAX) {
-                    output.MC_TORQUE = TORQUE_MAX;
-                } else if (output.MC_TORQUE < TORQUE_MIN) {
-                    output.MC_TORQUE = TORQUE_MIN;
-                }
-            
                 if((input.MC_EN == DIGITAL_LOW) 
                    || input.MC_POST_FAULT 
                    || input.MC_RUN_FAULT 

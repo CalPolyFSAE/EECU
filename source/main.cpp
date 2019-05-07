@@ -21,8 +21,6 @@ int main() {
     
     while(true) {
         if(vcu.flag) {
-            vcu.output.GENERAL_PURPOSE_1 = DIGITAL_HIGH;
-
             // read inputs
             input_map();
 
@@ -36,8 +34,6 @@ int main() {
             
             // spinlock to synchronize thread
             vcu.flag = false;
-            
-            vcu.output.GENERAL_PURPOSE_1 = DIGITAL_LOW;
         }
     }
 
@@ -48,12 +44,6 @@ extern "C" {
 
 void SysTick_Handler() { 
     vcu.flag = true;
-
-    if(vcu.output.GENERAL_PURPOSE_2 == DIGITAL_HIGH) {
-        vcu.output.GENERAL_PURPOSE_2 = DIGITAL_LOW;
-    } else {
-        vcu.output.GENERAL_PURPOSE_2 = DIGITAL_HIGH;
-    }
 }
 
 }

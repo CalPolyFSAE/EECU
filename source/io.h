@@ -3,12 +3,12 @@
 
 #include "MKE18F16.h"
 
-#define VCU_PRECHARGE   0x100
-#define VCU_DRIVER      0x101
-#define VCU_SPEED       0x102
-#define VCU_FAULTS      0x103
-
+#define VCU_PRECHARGE   0x0B0
+#define VCU_DRIVER      0x0B1
+#define VCU_SPEED       0x0B2
+#define VCU_FAULTS      0x0B3
 #define BMS_ID          0x314
+#define CHARGER_ID      0xFFF
 
 #define GEN_CAN_BUS 0
 #define GEN_CAN_BAUD_RATE 500000

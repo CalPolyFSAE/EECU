@@ -4,6 +4,8 @@
 #include "MKE18F16.h"
 #include "clock_config.h"
 
+#define BENCH_TEST
+
 #define VCU_FREQUENCY 100
 #define TIMER_PERIOD (BOARD_BOOTCLOCKRUN_CORE_CLOCK / VCU_FREQUENCY)
 
@@ -32,9 +34,9 @@
 #define BATTERY_LIMIT           90
 #define POWER_LIMIT             70
 
-#define TORQUE_DIS  -1
-#define TORQUE_MIN   0
-#define TORQUE_MAX  50
+#define TORQUE_DIS    -1
+#define TORQUE_MIN     0
+#define TORQUE_MAX  2280
 
 enum DIGITAL {
     DIGITAL_LOW,

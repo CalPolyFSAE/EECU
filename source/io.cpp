@@ -64,14 +64,16 @@ static void gen_can_callback() {
     uint8_t buffer[8];
 
     switch(can_receive(GEN_CAN_BUS, buffer)) {
-        // TODO - read CHARGER_CONNECTECD
-        // TODO - read BMS_VOLTAGE
-        // TODO - read BMS_TEMPERATURE
         
         case BMS_ID:
+            // TODO - read BMS_TEMPERATURE and change BMS_VOLTAGE to volts
             vcu.input.BMS_VOLTAGE = (buffer[2] << 16) | (buffer[1] << 8) | buffer[0];
             break;
-    
+
+        case CHARGER_ID:
+            // TODO - fill in value for CHARGER_ID and detect when charger is disconnected
+            vcu.input.CHARGER_CONNECTED = DIGITAL_HIGH;
+
         default:
             break;
     }
