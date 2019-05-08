@@ -7,8 +7,9 @@
 #define VCU_DRIVER      0x0B1
 #define VCU_SPEED       0x0B2
 #define VCU_FAULTS      0x0B3
-#define BMS_ID          0x314
-#define CHARGER_ID      0x18FF50E5
+
+#define BMS_ID 0x314
+#define CHARGER_ID 0x18FF50E5
 
 #define GEN_CAN_BUS 0
 #define GEN_CAN_BAUD_RATE 500000
@@ -17,13 +18,13 @@
 #define MC_CAN_BAUD_RATE 500000
 
 #define PWM_FREQUENCY 25000
-#define PWM_MIN  5
+#define PWM_MIN 5
 #define PWM_MAX 95
 
-#define PIN_FR  15
-#define PIN_FL   6
-#define PIN_RR   5
-#define PIN_RL   7
+#define PIN_FR 15
+#define PIN_FL 6
+#define PIN_RR 5
+#define PIN_RL 7
 
 void init_io();
 void input_map();

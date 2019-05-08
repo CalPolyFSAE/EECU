@@ -30,6 +30,7 @@ static void wheel_gpio_callback() {
 
     timer = FTM_GetCurrentTimerCount(FTM0);
 
+    // TODO - check timer values and convert to RPM
     switch(pin) {
         case PIN_FR:
             vcu.input.WHEEL_SPEED_FR = timer - timer_fr;
@@ -72,8 +73,9 @@ static void gen_can_callback() {
             break;
 
         case CHARGER_ID:
-            // TODO - detect when charger is disconnected (timeout of 1s)
-            vcu.input.CHARGER_CONNECTED = DIGITAL_HIGH;
+            // TODO - check frequency of charger CAN messages
+            vcu.input.CHARGER_CONNECTED = (vcu.input.CHARGER_CONNECTED % 255) + 1;
+            break;
 
         default:
             break;

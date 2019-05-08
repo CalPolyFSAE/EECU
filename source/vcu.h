@@ -15,6 +15,7 @@
 #define RTDS_TIME               SECONDS(2)
 #define ALLOWED_PRECHARGE_TIME  SECONDS(4)
 #define MC_CHARGE_TIME          SECONDS(1)
+#define CHARGER_CONNECTED_TIME  SECONDS(1)
 
 #define CA                  VOLTS(2.80)
 #define BFA                 VOLTS(2.10)
@@ -59,14 +60,14 @@ typedef struct {
     uint32_t MC_RUN_FAULT;      // CAN 1
     int16_t MC_CURRENT;         // CAN 1
     int16_t MC_VOLTAGE;         // CAN 1
-#ifdef BENCH_TEST    
     int16_t MC_SPEED;           // CAN 1
-    int16_t MC_IGBT_A;          // CAN 1
-    int16_t MC_IGBT_B;          // CAN 1
-    int16_t MC_IGBT_C;          // CAN 1
-    int16_t MC_GATE_DRIVER;     // CAN 1
-    int16_t MC_CONTROL_BOARD;   // CAN 1
-    int16_t MC_MOTOR;           // CAN 1
+#ifdef BENCH_TEST    
+    int16_t TEMP_IGBT_A;        // CAN 1
+    int16_t TEMP_IGBT_B;        // CAN 1
+    int16_t TEMP_IGBT_C;        // CAN 1
+    int16_t TEMP_GATE_DRIVER;   // CAN 1
+    int16_t TEMP_CONTROL_BOARD; // CAN 1
+    int16_t TEMP_MOTOR;         // CAN 1
 #endif    
     int8_t THROTTLE_1;          // ADC 0.14
     int8_t THROTTLE_2;          // ADC 0.15
