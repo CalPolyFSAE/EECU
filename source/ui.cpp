@@ -7,6 +7,8 @@ uidata_t uidata;
 
 uint8_t screen[100];
 
+uint8_t userInput;
+
 static void hexbyte(uint8_t x, uint8_t* dest){
     uint8_t msn = (x&0xf0)>>4;
     uint8_t lsn = (x&0xf);
@@ -16,7 +18,11 @@ static void hexbyte(uint8_t x, uint8_t* dest){
 
 void uirx(uint8_t data){
     uart::UART& uart = BSP::uart::UART::StaticClass();
+
+    if(data >= '0' && data <= '9')
+        userInput = data - '0';
     
+    /*
     if(data == '1'){
         gpio::GPIO::toggle(gpio::PortE, 7);
     } else if(data == '2'){    
@@ -28,6 +34,7 @@ void uirx(uint8_t data){
     } else if(data == '6'){
         gpio::GPIO::toggle(gpio::PortB, 0);
     }
+    */
 }
 
 void uiinit(){

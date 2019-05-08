@@ -59,7 +59,15 @@ typedef struct {
     uint32_t MC_RUN_FAULT;      // CAN 1
     int16_t MC_CURRENT;         // CAN 1
     int16_t MC_VOLTAGE;         // CAN 1
+#ifdef BENCH_TEST    
     int16_t MC_SPEED;           // CAN 1
+    int16_t MC_IGBT_A;          // CAN 1
+    int16_t MC_IGBT_B;          // CAN 1
+    int16_t MC_IGBT_C;          // CAN 1
+    int16_t MC_GATE_DRIVER;     // CAN 1
+    int16_t MC_CONTROL_BOARD;   // CAN 1
+    int16_t MC_MOTOR;           // CAN 1
+#endif    
     int8_t THROTTLE_1;          // ADC 0.14
     int8_t THROTTLE_2;          // ADC 0.15
     uint8_t LATCH_SENSE;        // GPIO A1
@@ -67,7 +75,7 @@ typedef struct {
     uint8_t TS_RDY;             // GPIO E2
     uint8_t TS_LIVE;            // GPIO B7
     uint8_t CHARGER_CONNECTED;  // CAN 0
-    int32_t BMS_VOLTAGE;        // CAN 0
+    int16_t BMS_VOLTAGE;        // CAN 0
     int16_t BMS_TEMPERATURE;    // CAN 0
     uint8_t BMS_OK;             // GPIO E3
     uint8_t IMD_OK;             // GPIO D16

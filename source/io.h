@@ -8,7 +8,7 @@
 #define VCU_SPEED       0x0B2
 #define VCU_FAULTS      0x0B3
 #define BMS_ID          0x314
-#define CHARGER_ID      0xFFF
+#define CHARGER_ID      0x18FF50E5
 
 #define GEN_CAN_BUS 0
 #define GEN_CAN_BAUD_RATE 500000

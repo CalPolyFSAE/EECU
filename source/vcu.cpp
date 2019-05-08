@@ -2,19 +2,21 @@
 #include "mc.h"
 #include "io.h"
 
-// maps a throttle to a torque value
+extern uint8_t userInput;
+
+// maps throttle position to a torque value
 static int16_t torque_map(int8_t throttle, int8_t power) {
     int16_t torque;
 
 #ifdef BENCH_TEST
-    torque = (throttle * 50) / 100;
-    
-    if(torque > 50) {
-        torque = TORQUE_MAX;
-    } else if (torque < TORQUE_MIN) {
-        torque = TORQUE_MIN;
+    torque = userInput * 10;
+
+    if(torque > 100) {
+        torque = 100;
+    } else if(torque < 0) {
+        torque = 0;
     }
-#else
+#else    
     torque = (throttle * TORQUE_MAX) / 100;
     
     if(power > POWER_LIMIT) {
@@ -23,7 +25,7 @@ static int16_t torque_map(int8_t throttle, int8_t power) {
     
     if(torque > TORQUE_MAX) {
         torque = TORQUE_MAX;
-    } else if (torque < TORQUE_MIN) {
+    } else if(torque < TORQUE_MIN) {
         torque = TORQUE_MIN;
     }
 #endif
@@ -65,7 +67,15 @@ VCU::VCU() {
     input.MC_RUN_FAULT = 0;
     input.MC_CURRENT = 0;
     input.MC_VOLTAGE = 0;
+#ifdef BENCH_TEST    
     input.MC_SPEED = 0;
+    input.MC_IGBT_A = 0;
+    input.MC_IGBT_B = 0;
+    input.MC_IGBT_C = 0;
+    input.MC_GATE_DRIVER = 0;
+    input.MC_CONTROL_BOARD = 0;
+    input.MC_MOTOR = 0;
+#endif    
     input.THROTTLE_1 = 0;
     input.THROTTLE_2 = 0;
     input.LATCH_SENSE = DIGITAL_LOW;
@@ -266,7 +276,8 @@ void VCU::shutdown_loop() {
                 output.PRECHARGE = DIGITAL_LOW;
                 output.DISCHARGE = DIGITAL_HIGH;
                 output.FAN_EN = DIGITAL_HIGH;
-                output.FAN_PWM = (FAN_GAIN * input.BMS_TEMPERATURE) + FAN_OFFSET;
+                //output.FAN_PWM = (FAN_GAIN * input.BMS_TEMPERATURE) + FAN_OFFSET;
+                output.FAN_PWM = PWM_MIN;
             } else {
                 timer++;
             }

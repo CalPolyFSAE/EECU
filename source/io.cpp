@@ -1,6 +1,7 @@
 #include "vcu.h"
 #include "mc.h"
 #include "io.h"
+#include "ui.h"
 #include "canlight.h"
 #include "adc.h"
 #include "gpio.h"
@@ -66,12 +67,12 @@ static void gen_can_callback() {
     switch(can_receive(GEN_CAN_BUS, buffer)) {
         
         case BMS_ID:
-            // TODO - read BMS_TEMPERATURE and change BMS_VOLTAGE to volts
-            vcu.input.BMS_VOLTAGE = (buffer[2] << 16) | (buffer[1] << 8) | buffer[0];
+            vcu.input.BMS_TEMPERATURE = (buffer[5] << 8) | buffer[4];
+            vcu.input.BMS_VOLTAGE = (buffer[1] << 8) | buffer[0];
             break;
 
         case CHARGER_ID:
-            // TODO - fill in value for CHARGER_ID and detect when charger is disconnected
+            // TODO - detect when charger is disconnected (timeout of 1s)
             vcu.input.CHARGER_CONNECTED = DIGITAL_HIGH;
 
         default:
@@ -216,6 +217,10 @@ static void pwm_set(uint8_t duty) {
 void init_io() {
     can::canlight_config config;
     can::CANlight::canx_config canx_config;
+
+#ifdef BENCH_TEST
+    uiinit();
+#endif
     
     // initialize GPIO driver
     gpio::GPIO::ConstructStatic();
@@ -296,6 +301,10 @@ void init_io() {
 
     // initialize PWM driver
     pwm_init();
+
+    // initialize motor controller
+    mc_torque_request(TORQUE_DIS);
+    mc_clear_faults();
 }
 
 // reads VCU input signals from GPIO and ADC pins
@@ -325,7 +334,7 @@ void output_map() {
     log_driver(MC_CAN_BUS);
     log_speed(MC_CAN_BUS);
     log_faults(MC_CAN_BUS);
-    
+
     mc_torque_request(vcu.output.MC_TORQUE);
     pwm_set(vcu.output.FAN_PWM);
     
