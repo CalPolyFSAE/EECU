@@ -18,7 +18,7 @@ static int16_t torque_map(int8_t throttle, int8_t power) {
     torque = (throttle * TORQUE_MAX) / 100;
     
     if(power > POWER_LIMIT) {
-        torque -= (power - POWER_LIMIT) * (power - POWER_LIMIT);
+        torque -= (power - POWER_LIMIT) * (power - POWER_LIMIT) * 10;
     }
     
     if(torque > TORQUE_MAX) {
