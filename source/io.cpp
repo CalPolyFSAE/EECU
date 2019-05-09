@@ -12,6 +12,7 @@ using namespace BSP;
 
 extern VCU vcu;
 
+// TODO - fix
 // callback to process wheel speed sensors on GPIO pins
 static void wheel_gpio_callback() {
     static uint16_t timer_fr = 0;
@@ -30,7 +31,6 @@ static void wheel_gpio_callback() {
 
     timer = FTM_GetCurrentTimerCount(FTM0);
 
-    // TODO - check timer values and convert to RPM
     switch(pin) {
         case PIN_FR:
             vcu.input.WHEEL_SPEED_FR = timer - timer_fr;
@@ -73,7 +73,6 @@ static void gen_can_callback() {
             break;
 
         case CHARGER_ID:
-            // TODO - check frequency of charger CAN messages
             vcu.input.CHARGER_CONNECTED = (vcu.input.CHARGER_CONNECTED % 255) + 1;
             break;
 

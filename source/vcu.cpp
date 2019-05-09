@@ -294,8 +294,8 @@ void VCU::shutdown_loop() {
 
 // VCU redundancy loop
 void VCU::redundancy_loop() {
-    static uint8_t CHARGER_CONNECTED = 0;
     static uint32_t timer = 0;
+    static uint8_t CHARGER_CONNECTED = 0;
     uint8_t BSPD_OK;
 
     if(timer > CHARGER_CONNECTED_TIME) {
