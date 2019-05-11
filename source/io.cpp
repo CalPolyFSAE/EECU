@@ -12,7 +12,6 @@ using namespace BSP;
 
 extern VCU vcu;
 
-// TODO - fix
 // callback to process wheel speed sensors on GPIO pins
 static void wheel_gpio_callback() {
     static uint16_t timer_fr = 0;
@@ -150,6 +149,7 @@ static void log_faults(uint8_t bus) {
     can_send(bus, VCU_FAULTS, buffer);
 }
 
+// TODO - debug FTM
 // initializes the timer driver
 static void timer_init() {
     ftm_config_t config;

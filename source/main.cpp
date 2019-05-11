@@ -9,7 +9,6 @@
 VCU vcu;
 
 int main() {
-    
     // initialize board hardware
     BOARD_InitBootClocks();
     BOARD_InitBootPins();
