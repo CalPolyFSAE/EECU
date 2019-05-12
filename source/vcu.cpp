@@ -17,6 +17,7 @@ static int16_t torque_map(int8_t throttle, int8_t power) {
         torque = 0;
     }
 #else    
+    // TODO - limit torque requests based on wheel speeds 
     torque = (throttle * TORQUE_MAX) / 100;
     
     if(power > POWER_LIMIT) {
@@ -68,14 +69,6 @@ VCU::VCU() {
     input.MC_CURRENT = 0;
     input.MC_VOLTAGE = 0;
     input.MC_SPEED = 0;
-#ifdef BENCH_TEST    
-    input.TEMP_IGBT_A = 0;
-    input.TEMP_IGBT_B = 0;
-    input.TEMP_IGBT_C = 0;
-    input.TEMP_GATE_DRIVER = 0;
-    input.TEMP_CONTROL_BOARD = 0;
-    input.TEMP_MOTOR = 0;
-#endif    
     input.THROTTLE_1 = 0;
     input.THROTTLE_2 = 0;
     input.LATCH_SENSE = DIGITAL_LOW;
@@ -124,6 +117,12 @@ void VCU::motor_loop() {
 
     THROTTLE_AVG = (input.THROTTLE_1 + input.THROTTLE_2) / 2;
     
+    if(THROTTLE_AVG < 0) {
+        THROTTLE_AVG = 0;
+    } else if(THROTTLE_AVG > 100) {
+        THROTTLE_AVG = 100;
+    }
+
     switch(state) {
         case STATE_STANDBY:
             output.MC_TORQUE = TORQUE_DIS;
@@ -172,6 +171,7 @@ void VCU::motor_loop() {
 
     if(brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) {
         output.BRAKE_LIGHT = DIGITAL_HIGH;
+        output.MC_TORQUE = TORQUE_MIN;
     } else {
         output.BRAKE_LIGHT = DIGITAL_LOW;
     }

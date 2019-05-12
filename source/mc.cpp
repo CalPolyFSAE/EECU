@@ -57,22 +57,6 @@ void mc_receive_broadcast_message() {
         case MC_BROADCAST_MESSAGE_MOTOR_POSITION_INFORMATION:
             vcu.input.MC_SPEED = (buffer[3] << 8) | buffer[2];
             break;
-#ifdef BENCH_TEST
-        case MC_BROADCAST_MESSAGE_TEMPERATURES_1:
-            vcu.input.TEMP_GATE_DRIVER = ((buffer[7] << 8) | buffer[6]) / 10;
-            vcu.input.TEMP_IGBT_C = ((buffer[5] << 8) | buffer[4]) / 10;
-            vcu.input.TEMP_IGBT_B = ((buffer[3] << 8) | buffer[2]) / 10;
-            vcu.input.TEMP_IGBT_A = ((buffer[1] << 8) | buffer[0]) / 10;
-            break;
-
-        case MC_BROADCAST_MESSAGE_TEMPERATURES_2:
-            vcu.input.TEMP_CONTROL_BOARD = ((buffer[1] << 8) | buffer[0]) / 10;
-            break;
-        
-        case MC_BROADCAST_MESSAGE_TEMPERATURES_3:
-            vcu.input.TEMP_MOTOR = ((buffer[5] << 8) | buffer[4]) / 10;
-            break;
-#endif
         
         default:
             break;

@@ -5,7 +5,7 @@
 #include "canlight.h"
 #include "adc.h"
 #include "gpio.h"
-#include "fsl_ftm.h"
+#include "fsl_lptmr.h"
 #include "fsl_flexio.h"
 
 using namespace BSP;
@@ -28,8 +28,9 @@ static void wheel_gpio_callback() {
         pin = gpio.int_source(gpio::PortD);
     }
 
-    timer = FTM_GetCurrentTimerCount(FTM0);
+    timer = LPTMR_GetCurrentTimerCount(LPTMR0);
 
+    // TODO - convert signal period to RPM
     switch(pin) {
         case PIN_FR:
             vcu.input.WHEEL_SPEED_FR = timer - timer_fr;
@@ -149,15 +150,16 @@ static void log_faults(uint8_t bus) {
     can_send(bus, VCU_FAULTS, buffer);
 }
 
-// TODO - debug FTM
 // initializes the timer driver
 static void timer_init() {
-    ftm_config_t config;
-
-    FTM_GetDefaultConfig(&config);
-    config.prescale = kFTM_Prescale_Divide_128;
-    FTM_Init(FTM0, &config);
-    FTM_StartTimer(FTM0, kFTM_SystemClock);
+    lptmr_config_t config;
+    
+    LPTMR_GetDefaultConfig(&config);
+    config.enableFreeRunning = true;
+    config.bypassPrescaler = false;
+    config.value = kLPTMR_Prescale_Glitch_1;
+    LPTMR_Init(LPTMR0, &config);
+    LPTMR_StartTimer(LPTMR0);
 }
 
 // initializes the PWM driver
