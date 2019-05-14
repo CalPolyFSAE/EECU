@@ -134,8 +134,8 @@ static void log_speed(uint8_t bus) {
     can_send(bus, VCU_SPEED, buffer);
 }
 
-// logs fault signals
-static void log_faults(uint8_t bus) {
+// logs safety signals
+static void log_safety(uint8_t bus) {
     uint8_t buffer[8];
     
     buffer[7] = 0x00;
@@ -147,7 +147,23 @@ static void log_faults(uint8_t bus) {
     buffer[1] = vcu.output.REDUNDANT_1;
     buffer[0] = vcu.output.REDUNDANT_2;
     
-    can_send(bus, VCU_FAULTS, buffer);
+    can_send(bus, VCU_SAFETY, buffer);
+}
+
+// updates the dashboard
+static void dashboard_update(uint32_t message) {
+    uint8_t buffer[8];
+    
+    buffer[7] = 0x00;
+    buffer[6] = 0x00;
+    buffer[5] = 0x00;
+    buffer[4] = 0x00;
+    buffer[3] = (message > 24) & 0xFF;
+    buffer[2] = (message > 16) & 0xFF;
+    buffer[1] = (message > 8) & 0xFF;
+    buffer[0] = message & 0xFF;
+    
+    can_send(GEN_CAN_BUS, DASHBOARD_ID, buffer);
 }
 
 // initializes the timer driver
@@ -155,9 +171,11 @@ static void timer_init() {
     lptmr_config_t config;
     
     LPTMR_GetDefaultConfig(&config);
+    
     config.enableFreeRunning = true;
     config.bypassPrescaler = false;
     config.value = kLPTMR_Prescale_Glitch_1;
+    
     LPTMR_Init(LPTMR0, &config);
     LPTMR_StartTimer(LPTMR0);
 }
@@ -310,7 +328,7 @@ void init_io() {
     mc_clear_faults();
 }
 
-// reads VCU input signals from GPIO and ADC pins
+// reads VCU input signals
 void input_map() {
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
     adc::ADC &adc = adc::ADC::ADC::StaticClass();
@@ -329,17 +347,9 @@ void input_map() {
     vcu.input.BRAKE_REAR = adc.read(ADC0, 12);
 }
 
-// writes VCU output signals to GPIO pins
+// writes VCU output signals
 void output_map() {
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
-    
-    log_precharge(MC_CAN_BUS);
-    log_driver(MC_CAN_BUS);
-    log_speed(MC_CAN_BUS);
-    log_faults(MC_CAN_BUS);
-
-    mc_torque_request(vcu.output.MC_TORQUE);
-    pwm_set(vcu.output.FAN_PWM);
     
     vcu.output.RTDS ? gpio.set(gpio::PortD, 4) : gpio.clear(gpio::PortD, 4);
     vcu.output.BRAKE_LIGHT ? gpio.set(gpio::PortB, 1) : gpio.clear(gpio::PortB, 1);
@@ -354,6 +364,15 @@ void output_map() {
     vcu.output.FAN_EN ? gpio.clear(gpio::PortD, 0) : gpio.set(gpio::PortD, 0);
     vcu.output.GENERAL_PURPOSE_1 ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
     vcu.output.GENERAL_PURPOSE_2 ? gpio.set(gpio::PortD, 2) : gpio.clear(gpio::PortD, 2);
+    
+    pwm_set(vcu.output.FAN_PWM);
+    mc_torque_request(vcu.output.MC_TORQUE);
+    dashboard_update(vcu.input.MC_RUN_FAULT);
+    
+    log_precharge(MC_CAN_BUS);
+    log_driver(MC_CAN_BUS);
+    log_speed(MC_CAN_BUS);
+    log_safety(MC_CAN_BUS);
 }
 
 // sends a CAN message on the specified bus
