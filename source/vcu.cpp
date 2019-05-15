@@ -187,7 +187,7 @@ void VCU::shutdown_loop() {
             output.AIR_POS = DIGITAL_LOW;
             output.AIR_NEG = DIGITAL_LOW;
             output.PUMP_EN = DIGITAL_LOW;
-            output.DCDC_DISABLE = DIGITAL_HIGH;
+            output.DCDC_DISABLE = DIGITAL_LOW;
             output.PRECHARGE = DIGITAL_LOW;
             output.DISCHARGE = DIGITAL_LOW;
             output.FAN_EN = DIGITAL_LOW;
@@ -208,7 +208,7 @@ void VCU::shutdown_loop() {
             output.AIR_POS = DIGITAL_LOW;
             output.AIR_NEG = DIGITAL_HIGH;
             output.PUMP_EN = DIGITAL_LOW;
-            output.DCDC_DISABLE = DIGITAL_HIGH;
+            output.DCDC_DISABLE = DIGITAL_LOW;
             output.PRECHARGE = DIGITAL_HIGH;
             output.DISCHARGE = DIGITAL_HIGH;
             output.FAN_EN = DIGITAL_LOW;
@@ -231,7 +231,7 @@ void VCU::shutdown_loop() {
             output.AIR_POS = DIGITAL_HIGH;
             output.AIR_NEG = DIGITAL_HIGH;
             output.PUMP_EN = DIGITAL_LOW;
-            output.DCDC_DISABLE = DIGITAL_HIGH;
+            output.DCDC_DISABLE = DIGITAL_LOW;
             output.PRECHARGE = DIGITAL_LOW;
             output.DISCHARGE = DIGITAL_HIGH;
             output.FAN_EN = DIGITAL_LOW;
@@ -254,7 +254,7 @@ void VCU::shutdown_loop() {
             output.AIR_POS = DIGITAL_HIGH;
             output.AIR_NEG = DIGITAL_HIGH;
             output.PUMP_EN = DIGITAL_LOW;
-            output.DCDC_DISABLE = DIGITAL_HIGH;
+            output.DCDC_DISABLE = DIGITAL_LOW;
             output.PRECHARGE = DIGITAL_LOW;
             output.DISCHARGE = DIGITAL_HIGH;
             output.FAN_EN = DIGITAL_LOW;
@@ -271,7 +271,7 @@ void VCU::shutdown_loop() {
                 output.AIR_POS = DIGITAL_HIGH;
                 output.AIR_NEG = DIGITAL_HIGH;
                 output.PUMP_EN = DIGITAL_HIGH;
-                output.DCDC_DISABLE = DIGITAL_LOW;
+                output.DCDC_DISABLE = DIGITAL_HIGH;
                 output.PRECHARGE = DIGITAL_LOW;
                 output.DISCHARGE = DIGITAL_HIGH;
                 output.FAN_EN = DIGITAL_HIGH;
