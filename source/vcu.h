@@ -22,10 +22,10 @@
 #define BRA                 VOLTS(1.78)
 #define BRAKE_MIN           VOLTS(0.50)
 #define BRAKE_MAX           VOLTS(4.50)
-#define THROTTLE_POS_MIN    VOLTS(0.50)
-#define THROTTLE_POS_MAX    VOLTS(4.50)
-#define THROTTLE_NEG_MIN    VOLTS(0.50)
-#define THROTTLE_NEG_MAX    VOLTS(4.50)
+#define THROTTLE_NEG_MIN    VOLTS(1.68)
+#define THROTTLE_NEG_MAX    VOLTS(2.03)
+#define THROTTLE_POS_MIN    VOLTS(3.01)
+#define THROTTLE_POS_MAX    VOLTS(3.36)
 
 #define FAN_GAIN    1
 #define FAN_OFFSET  0
@@ -33,11 +33,13 @@
 #define THROTTLE_HIGH_LIMIT      5
 #define THROTTLE_LOW_LIMIT      25
 #define BATTERY_LIMIT           90
-#define POWER_LIMIT             70
 
 #define TORQUE_DIS    -1
 #define TORQUE_MIN     0
-#define TORQUE_MAX  2280
+//#define TORQUE_MAX  2280
+#define TORQUE_MAX  1000
+
+#define DEFAULT_POWER_LIMIT     60
 
 enum DIGITAL {
     DIGITAL_LOW,
@@ -63,6 +65,7 @@ typedef struct {
     int16_t MC_SPEED;           // CAN 1
     int8_t THROTTLE_1;          // ADC 0.14
     int8_t THROTTLE_2;          // ADC 0.15
+    uint8_t POWER_LIMIT;        // CAN 0
     uint8_t LATCH_SENSE;        // GPIO A1
     uint8_t TS_READY_SENSE;     // GPIO B6
     uint8_t TS_RDY;             // GPIO E2

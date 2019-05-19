@@ -5,7 +5,7 @@
 extern uint8_t userInput;
 
 // maps throttle position to a torque value
-static int16_t torque_map(int8_t throttle, int8_t power) {
+static int16_t torque_map(int8_t throttle, int8_t power, uint8_t limit) {
     int16_t torque;
 
 #ifdef BENCH_TEST
@@ -17,11 +17,10 @@ static int16_t torque_map(int8_t throttle, int8_t power) {
         torque = 0;
     }
 #else    
-    // TODO - limit torque requests based on wheel speeds 
     torque = (throttle * TORQUE_MAX) / 100;
     
-    if(power > POWER_LIMIT) {
-        torque -= (power - POWER_LIMIT) * (power - POWER_LIMIT) * 10;
+    if(power > limit) {
+        torque -= (power - limit) * (power - limit) * 10;
     }
     
     if(torque > TORQUE_MAX) {
@@ -71,6 +70,7 @@ VCU::VCU() {
     input.MC_SPEED = 0;
     input.THROTTLE_1 = 0;
     input.THROTTLE_2 = 0;
+    input.POWER_LIMIT = DEFAULT_POWER_LIMIT;
     input.LATCH_SENSE = DIGITAL_LOW;
     input.TS_READY_SENSE = DIGITAL_LOW;
     input.TS_RDY = DIGITAL_LOW;
@@ -127,6 +127,12 @@ void VCU::motor_loop() {
         case STATE_STANDBY:
             output.MC_TORQUE = TORQUE_DIS;
 
+#ifdef BENCH_TEST
+            if(!input.MC_POST_FAULT 
+               && !input.MC_RUN_FAULT 
+               && (output.AIR_POS == DIGITAL_HIGH) 
+               && (output.AIR_NEG == DIGITAL_HIGH)) {
+#else
             if((input.MC_EN == DIGITAL_HIGH) 
                && !input.MC_POST_FAULT 
                && !input.MC_RUN_FAULT 
@@ -135,7 +141,9 @@ void VCU::motor_loop() {
                && (output.AIR_NEG == DIGITAL_HIGH) 
                && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR) 
                && brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)
-               && throttles_valid(input.THROTTLE_1, input.THROTTLE_2)) {
+               && throttles_valid(input.THROTTLE_1, input.THROTTLE_2)
+               ) {
+#endif
                 state = STATE_DRIVING;
                 timer = 0;
             }
@@ -145,8 +153,14 @@ void VCU::motor_loop() {
         case STATE_DRIVING:
             if(timer > RTDS_TIME) {
                 output.RTDS = DIGITAL_LOW;
-                output.MC_TORQUE = torque_map(THROTTLE_AVG, (input.MC_VOLTAGE * input.MC_CURRENT) / 1000);
+                output.MC_TORQUE = torque_map(THROTTLE_AVG, (input.MC_VOLTAGE * input.MC_CURRENT) / 1000, input.POWER_LIMIT);
 
+#ifdef BENCH_TEST
+                if(input.MC_POST_FAULT 
+                   || input.MC_RUN_FAULT 
+                   || (output.AIR_POS == DIGITAL_LOW) 
+                   || (output.AIR_NEG == DIGITAL_LOW)) {
+#else
                 if((input.MC_EN == DIGITAL_LOW) 
                    || input.MC_POST_FAULT 
                    || input.MC_RUN_FAULT 
@@ -155,6 +169,7 @@ void VCU::motor_loop() {
                    || ((THROTTLE_AVG > THROTTLE_HIGH_LIMIT) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
                    || !brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)
                    || !throttles_valid(input.THROTTLE_1, input.THROTTLE_2)) {
+#endif                    
                     state = STATE_STANDBY;
                 }
             } else {
@@ -307,6 +322,10 @@ void VCU::redundancy_loop() {
         timer = 0;
     } else {
         timer++;
+    }
+
+    if(input.LATCH_SENSE == DIGITAL_HIGH) {
+        mc_clear_faults();
     }
 
     if(!((input.CURRENT_SENSE > CA) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 

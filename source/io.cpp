@@ -12,6 +12,19 @@ using namespace BSP;
 
 extern VCU vcu;
 
+// converts wheel speed sensor reading to RPM
+static uint16_t wheel_conversion(uint16_t period) {
+    uint16_t speed;
+
+    if(period == 0) {
+        speed = 0;
+    } else {
+        speed = ((60 / RELUCTOR_TEETH) * TIMER_FREQUENCY) / period;
+    }
+
+    return(speed);
+}
+
 // callback to process wheel speed sensors on GPIO pins
 static void wheel_gpio_callback() {
     static uint16_t timer_fr = 0;
@@ -30,28 +43,27 @@ static void wheel_gpio_callback() {
 
     timer = LPTMR_GetCurrentTimerCount(LPTMR0);
 
-    // TODO - convert signal period to RPM
     switch(pin) {
         case PIN_FR:
-            vcu.input.WHEEL_SPEED_FR = timer - timer_fr;
+            vcu.input.WHEEL_SPEED_FR = wheel_conversion(timer - timer_fr);
             timer_fr = timer;
             gpio.ack_interrupt(gpio::PortC, PIN_FR);
             break;
 
         case PIN_FL:
-            vcu.input.WHEEL_SPEED_FL = timer - timer_fl;
+            vcu.input.WHEEL_SPEED_FL = wheel_conversion(timer - timer_fl);
             timer_fl = timer;
             gpio.ack_interrupt(gpio::PortD, PIN_FL);
             break;
 
         case PIN_RR:
-            vcu.input.WHEEL_SPEED_RR = timer - timer_rr;
+            vcu.input.WHEEL_SPEED_RR = wheel_conversion(timer - timer_rr);
             timer_rr = timer;
             gpio.ack_interrupt(gpio::PortD, PIN_RR);
             break;
 
         case PIN_RL:
-            vcu.input.WHEEL_SPEED_RL = timer - timer_rl;
+            vcu.input.WHEEL_SPEED_RL = wheel_conversion(timer - timer_rl);
             timer_rl = timer;
             gpio.ack_interrupt(gpio::PortD, PIN_RL);
             break;
@@ -174,8 +186,9 @@ static void timer_init() {
     
     config.enableFreeRunning = true;
     config.bypassPrescaler = false;
+    config.prescalerClockSource = kLPTMR_PrescalerClock_0;
     config.value = kLPTMR_Prescale_Glitch_1;
-    
+
     LPTMR_Init(LPTMR0, &config);
     LPTMR_StartTimer(LPTMR0);
 }
@@ -333,8 +346,8 @@ void input_map() {
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
     adc::ADC &adc = adc::ADC::ADC::StaticClass();
 
-    vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
-    vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
+    vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
+    vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
     vcu.input.LATCH_SENSE = gpio.read(gpio::PortA, 1);
     vcu.input.TS_READY_SENSE = gpio.read(gpio::PortB, 6);
     vcu.input.TS_RDY = gpio.read(gpio::PortE, 2);
@@ -367,6 +380,7 @@ void output_map() {
     
     pwm_set(vcu.output.FAN_PWM);
     mc_torque_request(vcu.output.MC_TORQUE);
+    // TODO - send correct information to dashboard
     dashboard_update(vcu.input.MC_RUN_FAULT);
     
     log_precharge(MC_CAN_BUS);

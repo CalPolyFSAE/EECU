@@ -27,6 +27,9 @@
 #define PIN_RR 5
 #define PIN_RL 7
 
+#define RELUCTOR_TEETH 20
+#define TIMER_FREQUENCY (CLOCK_GetIpFreq(kCLOCK_Lptmr0) / 4)
+
 void init_io();
 void input_map();
 void output_map();
