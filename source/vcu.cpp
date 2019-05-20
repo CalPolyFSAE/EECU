@@ -69,7 +69,9 @@ VCU::VCU() {
     input.MC_VOLTAGE = 0;
     input.MC_SPEED = 0;
     input.THROTTLE_1 = 0;
+    input.THROTTLE_1_BASE = 0;
     input.THROTTLE_2 = 0;
+    input.THROTTLE_2_BASE = 0;
     input.POWER_LIMIT = DEFAULT_POWER_LIMIT;
     input.LATCH_SENSE = DIGITAL_LOW;
     input.TS_READY_SENSE = DIGITAL_LOW;
@@ -133,7 +135,7 @@ void VCU::motor_loop() {
                && (output.AIR_POS == DIGITAL_HIGH) 
                && (output.AIR_NEG == DIGITAL_HIGH)) {
 #else
-            if((input.MC_EN == DIGITAL_HIGH) 
+            if((input.MC_EN == DIGITAL_HIGH || 1) 
                && !input.MC_POST_FAULT 
                && !input.MC_RUN_FAULT 
                && (THROTTLE_AVG < THROTTLE_LOW_LIMIT) 
@@ -161,7 +163,7 @@ void VCU::motor_loop() {
                    || (output.AIR_POS == DIGITAL_LOW) 
                    || (output.AIR_NEG == DIGITAL_LOW)) {
 #else
-                if((input.MC_EN == DIGITAL_LOW) 
+                if((input.MC_EN == DIGITAL_LOW && 0) 
                    || input.MC_POST_FAULT 
                    || input.MC_RUN_FAULT 
                    || (output.AIR_POS == DIGITAL_LOW) 

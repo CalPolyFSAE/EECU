@@ -315,6 +315,11 @@ void init_io() {
     
     // initialize ADC driver
     adc::ADC::ConstructStatic(NULL);
+
+    // initialize throttle base voltages
+    adc::ADC& adc = adc::ADC::StaticClass();
+    vcu.input.THROTTLE_1_BASE = adc.read(ADC0, 14);
+    vcu.input.THROTTLE_2_BASE = adc.read(ADC0, 15);
     
     // initialize CAN driver
     can::CANlight::ConstructStatic(&config);
@@ -346,8 +351,10 @@ void input_map() {
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
     adc::ADC &adc = adc::ADC::ADC::StaticClass();
 
-    vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
-    vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
+    //vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
+    vcu.input.THROTTLE_1 =  - ((((int32_t)adc.read(ADC0, 14) - vcu.input.THROTTLE_1_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL));
+    //vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
+    vcu.input.THROTTLE_2 = (((int32_t)adc.read(ADC0, 15) - vcu.input.THROTTLE_2_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL);
     vcu.input.LATCH_SENSE = gpio.read(gpio::PortA, 1);
     vcu.input.TS_READY_SENSE = gpio.read(gpio::PortB, 6);
     vcu.input.TS_RDY = gpio.read(gpio::PortE, 2);

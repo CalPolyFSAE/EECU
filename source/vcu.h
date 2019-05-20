@@ -4,7 +4,7 @@
 #include "MKE18F16.h"
 #include "clock_config.h"
 
-#define BENCH_TEST
+//#define BENCH_TEST
 
 #define VCU_FREQUENCY 100
 #define TIMER_PERIOD (BOARD_BOOTCLOCKRUN_CORE_CLOCK / VCU_FREQUENCY)
@@ -18,14 +18,17 @@
 #define CHARGER_CONNECTED_TIME  SECONDS(1)
 
 #define CA                  VOLTS(2.80)
-#define BFA                 VOLTS(2.10)
-#define BRA                 VOLTS(1.78)
+#define BFA                 420//VOLTS(2.10)
+#define BRA                 420//VOLTS(1.78)
 #define BRAKE_MIN           VOLTS(0.50)
 #define BRAKE_MAX           VOLTS(4.50)
 #define THROTTLE_NEG_MIN    VOLTS(1.68)
 #define THROTTLE_NEG_MAX    VOLTS(2.03)
 #define THROTTLE_POS_MIN    VOLTS(3.01)
 #define THROTTLE_POS_MAX    VOLTS(3.36)
+// percent travel of throttle
+#define THROTTLE_TRAVEL     (0.08)
+#define THROTTLE_FULLSCALE VOLTS(5)
 
 #define FAN_GAIN    1
 #define FAN_OFFSET  0
@@ -63,8 +66,10 @@ typedef struct {
     int16_t MC_CURRENT;         // CAN 1
     int16_t MC_VOLTAGE;         // CAN 1
     int16_t MC_SPEED;           // CAN 1
-    int8_t THROTTLE_1;          // ADC 0.14
-    int8_t THROTTLE_2;          // ADC 0.15
+    int32_t THROTTLE_1;         // ADC 0.14
+    int32_t THROTTLE_1_BASE;    // ADC 0.14
+    int32_t THROTTLE_2;         // ADC 0.15
+    int32_t THROTTLE_2_BASE;    // ADC 0.15
     uint8_t POWER_LIMIT;        // CAN 0
     uint8_t LATCH_SENSE;        // GPIO A1
     uint8_t TS_READY_SENSE;     // GPIO B6
