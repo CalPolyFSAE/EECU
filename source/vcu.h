@@ -18,14 +18,15 @@
 #define CHARGER_CONNECTED_TIME  SECONDS(1)
 
 #define CA                  VOLTS(2.80)
-#define BFA                 420//VOLTS(2.10)
-#define BRA                 420//VOLTS(1.78)
+#define BFA                 VOLTS(0.51)
+#define BRA                 VOLTS(0.51)
 #define BRAKE_MIN           VOLTS(0.50)
 #define BRAKE_MAX           VOLTS(4.50)
 #define THROTTLE_NEG_MIN    VOLTS(1.68)
 #define THROTTLE_NEG_MAX    VOLTS(2.03)
 #define THROTTLE_POS_MIN    VOLTS(3.01)
 #define THROTTLE_POS_MAX    VOLTS(3.36)
+
 // percent travel of throttle
 #define THROTTLE_TRAVEL     (0.08)
 #define THROTTLE_FULLSCALE VOLTS(5)

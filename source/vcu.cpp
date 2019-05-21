@@ -135,7 +135,7 @@ void VCU::motor_loop() {
                && (output.AIR_POS == DIGITAL_HIGH) 
                && (output.AIR_NEG == DIGITAL_HIGH)) {
 #else
-            if((input.MC_EN == DIGITAL_HIGH || 1) 
+            if((input.MC_EN == DIGITAL_HIGH) 
                && !input.MC_POST_FAULT 
                && !input.MC_RUN_FAULT 
                && (THROTTLE_AVG < THROTTLE_LOW_LIMIT) 
@@ -163,7 +163,7 @@ void VCU::motor_loop() {
                    || (output.AIR_POS == DIGITAL_LOW) 
                    || (output.AIR_NEG == DIGITAL_LOW)) {
 #else
-                if((input.MC_EN == DIGITAL_LOW && 0) 
+                if((input.MC_EN == DIGITAL_LOW) 
                    || input.MC_POST_FAULT 
                    || input.MC_RUN_FAULT 
                    || (output.AIR_POS == DIGITAL_LOW) 
