@@ -283,10 +283,10 @@ void init_io() {
     PORTE->PCR[3] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     PORTD->PCR[16] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     PORTC->PCR[8] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
-    PORTC->PCR[15] |= PORT_PCR_PE(1) | PORT_PCR_PS(0) | PORT_PCR_PFE(1);
-    PORTD->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0) | PORT_PCR_PFE(1);
-    PORTD->PCR[5] |= PORT_PCR_PE(1) | PORT_PCR_PS(0) | PORT_PCR_PFE(1);
-    PORTD->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(0) | PORT_PCR_PFE(1);
+    PORTC->PCR[15] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTD->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTD->PCR[5] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTD->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
 
     // enable GPIO interrupts
     gpio.config_interrupt(gpio::PortC, PIN_FR, kPORT_InterruptRisingEdge);
@@ -353,10 +353,6 @@ void input_map() {
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
     adc::ADC &adc = adc::ADC::ADC::StaticClass();
 
-    vcu.input.THROTTLE_1 =  - ((((int32_t)adc.read(ADC0, 14) - vcu.input.THROTTLE_1_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL));
-    vcu.input.THROTTLE_2 = (((int32_t)adc.read(ADC0, 15) - vcu.input.THROTTLE_2_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL);
-    //vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
-    //vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
     vcu.input.TS_READY_SENSE = gpio.read(gpio::PortB, 6);
     vcu.input.TS_RDY = gpio.read(gpio::PortE, 2);
     vcu.input.TS_LIVE = gpio.read(gpio::PortB, 7);
@@ -364,13 +360,17 @@ void input_map() {
     vcu.input.IMD_OK = gpio.read(gpio::PortD, 16);
     vcu.input.BSPD_OK = gpio.read(gpio::PortC, 8);
     vcu.input.CURRENT_SENSE = adc.read(ADC0, 6);
-    vcu.input.BRAKE_FRONT = adc.read(ADC0, 7);
-    vcu.input.BRAKE_REAR = adc.read(ADC0, 12);
 
     if((timer % 10) == 0)
     {
         vcu.input.MC_EN = gpio.read(gpio::PortE, 6);
         vcu.input.LATCH_SENSE = gpio.read(gpio::PortA, 1);
+        //vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
+        //vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
+        vcu.input.THROTTLE_1 =  - ((((int32_t)adc.read(ADC0, 14) - vcu.input.THROTTLE_1_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL));
+        vcu.input.THROTTLE_2 = (((int32_t)adc.read(ADC0, 15) - vcu.input.THROTTLE_2_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL);
+        vcu.input.BRAKE_FRONT = adc.read(ADC0, 7);
+        vcu.input.BRAKE_REAR = adc.read(ADC0, 12);
         timer = 0;
     }
     else

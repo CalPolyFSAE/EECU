@@ -18,7 +18,7 @@ int main() {
 
     // initialize system timer
     SysTick_Config(TIMER_PERIOD);
-    
+
     while(true) {
         if(vcu.flag) {
             // read inputs
