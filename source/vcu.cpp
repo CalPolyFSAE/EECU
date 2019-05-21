@@ -19,9 +19,11 @@ static int16_t torque_map(int8_t throttle, int8_t power, uint8_t limit) {
 #else    
     torque = (throttle * TORQUE_MAX) / 100;
     
+    /*    
     if(power > limit) {
         torque -= (power - limit) * (power - limit) * 10;
     }
+    */    
     
     if(torque > TORQUE_MAX) {
         torque = TORQUE_MAX;
@@ -91,7 +93,7 @@ VCU::VCU() {
     input.WHEEL_SPEED_RR = DIGITAL_LOW;
     input.WHEEL_SPEED_RL = DIGITAL_LOW;
  
-    output.MC_TORQUE = 0;
+    output.MC_TORQUE = TORQUE_DIS;
     output.RTDS = DIGITAL_LOW;
     output.BRAKE_LIGHT = DIGITAL_LOW;
     output.AIR_POS = DIGITAL_LOW;
@@ -188,7 +190,6 @@ void VCU::motor_loop() {
 
     if(brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) {
         output.BRAKE_LIGHT = DIGITAL_HIGH;
-        output.MC_TORQUE = TORQUE_MIN;
     } else {
         output.BRAKE_LIGHT = DIGITAL_LOW;
     }
