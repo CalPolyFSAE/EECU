@@ -274,7 +274,7 @@ void init_io() {
     gpio.in_dir(gpio::PortD, 5);
     gpio.in_dir(gpio::PortD, 7);
     
-    // enable pull-down resistors on GPIO inputs
+    // enable pull-up resistors on GPIO inputs
     PORTE->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     PORTA->PCR[1] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     PORTB->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
