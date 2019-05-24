@@ -283,10 +283,10 @@ void init_io() {
     PORTE->PCR[3] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     PORTD->PCR[16] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     PORTC->PCR[8] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
-    PORTC->PCR[15] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
-    PORTD->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
-    PORTD->PCR[5] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
-    PORTD->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
+    PORTC->PCR[15] |= PORT_PCR_PE(1) | PORT_PCR_PS(1);
+    PORTD->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(1);
+    PORTD->PCR[5] |= PORT_PCR_PE(1) | PORT_PCR_PS(1);
+    PORTD->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(1);
 
     // enable GPIO interrupts
     gpio.config_interrupt(gpio::PortC, PIN_FR, kPORT_InterruptRisingEdge);

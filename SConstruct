@@ -7,7 +7,7 @@ GNU_PATH = '/usr/lib/gcc-arm-none-eabi/bin/'
 BSP_PATH = '../MKELibrary/'
 
 # Change the compiled name of the file below
-compileTarget = 'main'
+compileTarget = 'vcu'
 
 # Create Communal build directory to store all the .o's
 VariantDir('build/board', 'board')
