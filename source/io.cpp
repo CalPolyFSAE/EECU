@@ -80,7 +80,8 @@ static void gen_can_callback() {
     switch(can_receive(GEN_CAN_BUS, buffer)) {
         
         case BMS_ID:
-            vcu.input.BMS_TEMPERATURE = (buffer[5] << 8) | buffer[4];
+            vcu.input.BMS_STATE = buffer[4];
+            vcu.input.BMS_TEMPERATURE = (buffer[3] << 8) | buffer[2];
             vcu.input.BMS_VOLTAGE = (buffer[1] << 8) | buffer[0];
             break;
 
