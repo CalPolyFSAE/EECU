@@ -17,7 +17,8 @@ static int16_t torque_map(int8_t throttle, int8_t power, uint8_t limit) {
         torque = 0;
     }
 #else    
-    torque = (throttle * TORQUE_MAX) / 100;
+    if(throttle > 20 && throttle < 150) torque = ((throttle-20) * TORQUE_MAX) / 100;
+    else torque = 0;
     
     /*    
     if(power > limit) {
@@ -37,6 +38,9 @@ static int16_t torque_map(int8_t throttle, int8_t power, uint8_t limit) {
 
 // checks if brakes are active
 static bool brakes_active(uint32_t front, uint32_t rear) {
+#ifndef BRAKES_OK
+    return 1;
+#endif
     if((front > BFA) || (rear > BRA)) {
         return(true);
     } else {
@@ -46,6 +50,9 @@ static bool brakes_active(uint32_t front, uint32_t rear) {
 
 // checks if brakes are valid
 static bool brakes_valid(uint32_t front, uint32_t rear) {
+#ifndef BRAKES_OK
+    return 1;
+#endif
     if((front > BRAKE_MIN) && (front < BRAKE_MAX) && (rear > BRAKE_MIN) && (rear < BRAKE_MAX)) {
         return(true);
     } else {
@@ -55,6 +62,9 @@ static bool brakes_valid(uint32_t front, uint32_t rear) {
 
 // checks if throttles are valid
 static bool throttles_valid(int8_t throttle_1, int8_t throttle_2) {
+#ifndef THROTTLE_OK
+    return(1);
+#endif
     if(((throttle_1 - throttle_2) < 10) && ((throttle_1 - throttle_2) > -10)) {
         return(true);
     } else {
@@ -119,7 +129,11 @@ void VCU::motor_loop() {
     static uint32_t timer = 0;
     int8_t THROTTLE_AVG;
 
+#ifdef THROTTLE_OK
     THROTTLE_AVG = (input.THROTTLE_1 + input.THROTTLE_2) / 2;
+#else
+    THROTTLE_AVG = input.THROTTLE_2;
+#endif
     
     if(THROTTLE_AVG < 0) {
         THROTTLE_AVG = 0;
@@ -140,7 +154,6 @@ void VCU::motor_loop() {
             if(/*(input.MC_EN == DIGITAL_HIGH) 
                &&*/ !input.MC_POST_FAULT 
                && !input.MC_RUN_FAULT 
-               && (THROTTLE_AVG < THROTTLE_LOW_LIMIT) 
                && (output.AIR_POS == DIGITAL_HIGH) 
                && (output.AIR_NEG == DIGITAL_HIGH) 
                && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR) 
@@ -170,7 +183,6 @@ void VCU::motor_loop() {
                    || input.MC_RUN_FAULT 
                    || (output.AIR_POS == DIGITAL_LOW) 
                    || (output.AIR_NEG == DIGITAL_LOW) 
-                   || ((THROTTLE_AVG > THROTTLE_HIGH_LIMIT) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
                    || !brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)
                    || !throttles_valid(input.THROTTLE_1, input.THROTTLE_2)) {
 #endif                    
@@ -178,7 +190,7 @@ void VCU::motor_loop() {
                 }
             } else {
                 output.RTDS = DIGITAL_HIGH;
-                output.MC_TORQUE = TORQUE_MIN;
+                output.MC_TORQUE = TORQUE_DIS;
                 timer++;
             }
 
@@ -232,13 +244,17 @@ void VCU::shutdown_loop() {
             output.FAN_EN = DIGITAL_LOW;
             output.FAN_PWM = PWM_MIN;
 
-            if(((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE < ((input.BMS_VOLTAGE * BATTERY_LIMIT) / 100)) && !input.CHARGER_CONNECTED) 
-               || (input.TS_READY_SENSE == DIGITAL_LOW)) {
-                output.PRECHARGE_FAILED = DIGITAL_HIGH;
-                state = STATE_AIR_OFF;
-            } else if((((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE > ((input.BMS_VOLTAGE * BATTERY_LIMIT) / 100))) || input.CHARGER_CONNECTED) 
-                      && (input.TS_READY_SENSE == DIGITAL_HIGH)) {
-                state = STATE_AIR_ON;
+            if(((timer > ALLOWED_PRECHARGE_TIME) 
+                && (input.MC_VOLTAGE < ((input.BMS_VOLTAGE * BATTERY_LIMIT) / 100)) 
+                && !input.CHARGER_CONNECTED) 
+                || (input.TS_READY_SENSE == DIGITAL_LOW)) {
+                    output.PRECHARGE_FAILED = DIGITAL_HIGH;
+                    state = STATE_AIR_OFF;
+            } else if((((timer > ALLOWED_PRECHARGE_TIME) 
+                && (input.MC_VOLTAGE > ((input.BMS_VOLTAGE * BATTERY_LIMIT) / 100))) 
+                || input.CHARGER_CONNECTED) 
+                && (input.TS_READY_SENSE == DIGITAL_HIGH)) {
+                    state = STATE_AIR_ON;
             } else {
                 timer++;
             }
@@ -258,10 +274,10 @@ void VCU::shutdown_loop() {
             if(input.TS_READY_SENSE == DIGITAL_LOW) {
                 state = STATE_AIR_OFF;
             } else if((input.TS_READY_SENSE == DIGITAL_HIGH)
-                      && input.CHARGER_CONNECTED) {
+                    && input.CHARGER_CONNECTED) {
                 state = STATE_READY_TO_CHARGE;
             } else if((input.TS_READY_SENSE == DIGITAL_HIGH)
-                      && !input.CHARGER_CONNECTED) {
+                    && !input.CHARGER_CONNECTED) {
                 state = STATE_READY_TO_DRIVE;
                 timer = 0;
             }
@@ -314,7 +330,6 @@ void VCU::shutdown_loop() {
 void VCU::redundancy_loop() {
     static uint32_t timer = 0;
     static uint8_t CHARGER_CONNECTED = 0;
-    uint8_t BSPD_OK;
 
     if(timer > CHARGER_CONNECTED_TIME) {
         if(input.CHARGER_CONNECTED == CHARGER_CONNECTED) {
@@ -331,6 +346,10 @@ void VCU::redundancy_loop() {
         mc_clear_faults();
     }
 
+#ifdef BSPDREDUN_OK
+
+    uint8_t BSPD_OK;
+
     if(!((input.CURRENT_SENSE > CA) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
        && brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
         BSPD_OK = DIGITAL_HIGH;
@@ -342,9 +361,14 @@ void VCU::redundancy_loop() {
        && (input.IMD_OK == DIGITAL_HIGH) 
        && (input.BMS_OK == DIGITAL_HIGH)) {
         output.REDUNDANT_1 = DIGITAL_HIGH;
-        output.REDUNDANT_2 = DIGITAL_HIGH;
     } else {
         output.REDUNDANT_1 = DIGITAL_LOW;
-        output.REDUNDANT_2 = DIGITAL_LOW;
     }
+
+#else
+    output.REDUNDANT_1 = DIGITAL_HIGH;
+#endif
+
+    output.REDUNDANT_2 = DIGITAL_HIGH;
+
 }

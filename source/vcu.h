@@ -5,6 +5,9 @@
 #include "clock_config.h"
 
 //#define BENCH_TEST
+//#define THROTTLE_OK
+//#define BRAKES_OK
+//#define BSPDREDUN_OK
 
 #define VCU_FREQUENCY 100
 #define TIMER_PERIOD (BOARD_BOOTCLOCKRUN_CORE_CLOCK / VCU_FREQUENCY)
@@ -28,7 +31,7 @@
 #define THROTTLE_POS_MAX    VOLTS(3.36)
 
 // percent travel of throttle
-#define THROTTLE_TRAVEL     (0.08)
+#define THROTTLE_TRAVEL     (0.3)
 #define THROTTLE_FULLSCALE VOLTS(5)
 
 #define FAN_GAIN    1
@@ -41,7 +44,7 @@
 #define TORQUE_DIS    -1
 #define TORQUE_MIN     0
 //#define TORQUE_MAX  2280
-#define TORQUE_MAX  1000
+#define TORQUE_MAX  100
 
 #define DEFAULT_POWER_LIMIT     60
 

@@ -257,6 +257,12 @@ void init_io() {
     uiinit();
 #endif
     
+    // initialize timer driver
+    timer_init();
+
+    // initialize PWM driver
+    pwm_init();
+
     // initialize GPIO driver
     gpio::GPIO::ConstructStatic();
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
@@ -289,15 +295,15 @@ void init_io() {
     PORTD->PCR[5] |= PORT_PCR_PE(1) | PORT_PCR_PS(1);
     PORTD->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(1);
 
+    // configure GPIO callbacks
+    gpio.config_function(gpio::PortC, wheel_gpio_callback);
+    gpio.config_function(gpio::PortD, wheel_gpio_callback);
+
     // enable GPIO interrupts
     gpio.config_interrupt(gpio::PortC, PIN_FR, kPORT_InterruptRisingEdge);
     gpio.config_interrupt(gpio::PortD, PIN_FL, kPORT_InterruptRisingEdge);
     gpio.config_interrupt(gpio::PortD, PIN_RR, kPORT_InterruptRisingEdge);
     gpio.config_interrupt(gpio::PortD, PIN_RL, kPORT_InterruptRisingEdge);
-
-    // configure GPIO callbacks
-    gpio.config_function(gpio::PortC, wheel_gpio_callback);
-    gpio.config_function(gpio::PortD, wheel_gpio_callback);
 
     // configure GPIO outputs
     gpio.out_dir(gpio::PortD, 4);
@@ -336,12 +342,6 @@ void init_io() {
     canx_config.callback = mc_can_callback;
     can.init(MC_CAN_BUS, &canx_config);
     
-    // initialize timer driver
-    timer_init();
-
-    // initialize PWM driver
-    pwm_init();
-
     // initialize motor controller
     mc_torque_request(TORQUE_DIS);
     mc_clear_faults();
@@ -368,6 +368,8 @@ void input_map() {
         vcu.input.LATCH_SENSE = gpio.read(gpio::PortA, 1);
         //vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
         //vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
+        //vcu.input.THROTTLE_1 = adc.read(ADC0, 14);
+        //vcu.input.THROTTLE_2 = adc.read(ADC0, 15);
         vcu.input.THROTTLE_1 =  - ((((int32_t)adc.read(ADC0, 14) - vcu.input.THROTTLE_1_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL));
         vcu.input.THROTTLE_2 = (((int32_t)adc.read(ADC0, 15) - vcu.input.THROTTLE_2_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL);
         vcu.input.BRAKE_FRONT = adc.read(ADC0, 7);
@@ -400,6 +402,7 @@ void output_map() {
     
     pwm_set(vcu.output.FAN_PWM);
     mc_torque_request(vcu.output.MC_TORQUE);
+    //mc_torque_request(-1);
     // TODO - send correct information to dashboard
     dashboard_update(vcu.input.MC_RUN_FAULT);
     
