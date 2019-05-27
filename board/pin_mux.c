@@ -74,11 +74,11 @@ BOARD_InitPins:
   - {pin_num: '38', peripheral: GPIOA, signal: 'GPIO, 6', pin_signal: ADC0_SE2/ACMP1_IN0/PTA6/FTM0_FLT1/LPSPI1_PCS1/LPUART1_CTS}
   - {pin_num: '2', peripheral: GPIOD, signal: 'GPIO, 0', pin_signal: ADC2_SE0/PTD0/FTM0_CH2/LPSPI1_SCK/FTM2_CH0/FXIO_D0/TRGMUX_OUT1}
   - {pin_num: '37', peripheral: GPIOA, signal: 'GPIO, 7', pin_signal: ADC0_SE3/ACMP1_IN1/PTA7/FTM0_FLT2/RTC_CLKIN/LPUART1_RTS}
-  - {pin_num: '46', peripheral: GPIOD, signal: 'GPIO, 2', pin_signal: ADC1_SE2/PTD2/FTM3_CH4/LPSPI1_SOUT/FXIO_D4/TRGMUX_IN5}
   - {pin_num: '47', peripheral: LPUART0, signal: TX, pin_signal: ADC1_SE1/PTA3/FTM3_CH1/LPI2C0_SCL/EWM_IN/LPUART0_TX}
   - {pin_num: '48', peripheral: LPUART0, signal: RX, pin_signal: ADC1_SE0/PTA2/FTM3_CH0/LPI2C0_SDA/EWM_OUT_b/LPUART0_RX}
   - {pin_num: '1', peripheral: FLEXIO, signal: 'D, 1', pin_signal: ADC2_SE1/PTD1/FTM0_CH3/LPSPI1_SIN/FTM2_CH1/FXIO_D1/TRGMUX_OUT2}
   - {pin_num: '29', peripheral: GPIOC, signal: 'GPIO, 15', pin_signal: ADC0_SE13/ACMP2_IN4/PTC15/FTM1_CH3}
+  - {pin_num: '46', peripheral: ADC1, signal: 'SE, 2', pin_signal: ADC1_SE2/PTD2/FTM3_CH4/LPSPI1_SOUT/FXIO_D4/TRGMUX_IN5}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -189,8 +189,8 @@ void BOARD_InitPins(void)
     /* PORTD16 (pin 14) is configured as PTD16 */
     PORT_SetPinMux(PORTD, 16U, kPORT_MuxAsGpio);
 
-    /* PORTD2 (pin 46) is configured as PTD2 */
-    PORT_SetPinMux(PORTD, 2U, kPORT_MuxAsGpio);
+    /* PORTD2 (pin 46) is configured as ADC1_SE2 */
+    PORT_SetPinMux(PORTD, 2U, kPORT_PinDisabledOrAnalog);
 
     /* PORTD3 (pin 45) is configured as PTD3 */
     PORT_SetPinMux(PORTD, 3U, kPORT_MuxAsGpio);

@@ -117,8 +117,9 @@ VCU::VCU() {
     output.REDUNDANT_2 = DIGITAL_LOW;
     output.FAN_EN = DIGITAL_LOW;
     output.FAN_PWM = DIGITAL_LOW;
-    output.GENERAL_PURPOSE_1 = DIGITAL_LOW;
-    output.GENERAL_PURPOSE_2 = DIGITAL_LOW;
+    output.SUPPLY_OK = DIGITAL_HIGH;
+    //output.GENERAL_PURPOSE_1 = DIGITAL_LOW;
+    //output.GENERAL_PURPOSE_2 = DIGITAL_LOW;
 
     flag = false;
 }

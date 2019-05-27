@@ -322,11 +322,13 @@ void init_io() {
     
     // initialize ADC driver
     adc::ADC::ConstructStatic(NULL);
-
-    // initialize throttle base voltages
     adc::ADC& adc = adc::ADC::StaticClass();
+
+    // initialize throttle base voltages 
     vcu.input.THROTTLE_1_BASE = adc.read(ADC0, 14);
     vcu.input.THROTTLE_2_BASE = adc.read(ADC0, 15);
+    
+    vcu.input.SUPPLY_VOLTAGE = adc.read(ADC1, 2);
     
     // initialize CAN driver
     can::CANlight::ConstructStatic(&config);
@@ -361,6 +363,8 @@ void input_map() {
     vcu.input.IMD_OK = gpio.read(gpio::PortD, 16);
     vcu.input.BSPD_OK = gpio.read(gpio::PortC, 8);
     vcu.input.CURRENT_SENSE = adc.read(ADC0, 6);
+    vcu.input.SUPPLY_VOLTAGE = adc.read(ADC1, 2);
+    vcu.output.SUPPLY_OK = (vcu.input.SUPPLY_VOLTAGE > 3100);
 
     if((timer % 10) == 0)
     {
@@ -397,8 +401,9 @@ void output_map() {
     vcu.output.REDUNDANT_1 ? gpio.set(gpio::PortE, 7) : gpio.clear(gpio::PortE, 7);
     vcu.output.REDUNDANT_2 ? gpio.set(gpio::PortA, 6) : gpio.clear(gpio::PortA, 6);
     vcu.output.FAN_EN ? gpio.clear(gpio::PortD, 0) : gpio.set(gpio::PortD, 0);
-    vcu.output.GENERAL_PURPOSE_1 ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
-    vcu.output.GENERAL_PURPOSE_2 ? gpio.set(gpio::PortD, 2) : gpio.clear(gpio::PortD, 2);
+    vcu.output.SUPPLY_OK ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
+    //vcu.output.GENERAL_PURPOSE_1 ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
+    //vcu.output.GENERAL_PURPOSE_2 ? gpio.set(gpio::PortD, 2) : gpio.clear(gpio::PortD, 2);
     
     pwm_set(vcu.output.FAN_PWM);
     mc_torque_request(vcu.output.MC_TORQUE);

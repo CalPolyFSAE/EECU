@@ -93,6 +93,7 @@ typedef struct {
     uint16_t WHEEL_SPEED_FL;    // GPIO D6
     uint16_t WHEEL_SPEED_RR;    // GPIO D5
     uint16_t WHEEL_SPEED_RL;    // GPIO D7
+    uint16_t SUPPLY_VOLTAGE;    // ADC 1.2
 } input_t;
 
 typedef struct {
@@ -110,8 +111,9 @@ typedef struct {
     uint8_t REDUNDANT_2;        // GPIO A6
     uint8_t FAN_EN;             // GPIO D0
     uint8_t FAN_PWM;            // FXIO D1
-    uint8_t GENERAL_PURPOSE_1;  // GPIO A7
-    uint8_t GENERAL_PURPOSE_2;  // GPIO D2
+    uint8_t SUPPLY_OK;          // GPIO A7
+    //uint8_t GENERAL_PURPOSE_1;  // GPIO A7
+    //uint8_t GENERAL_PURPOSE_2;  // GPIO D2
 } output_t;
 
 class VCU {
