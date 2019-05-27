@@ -18,17 +18,12 @@
 #define MC_CAN_BUS 1
 #define MC_CAN_BAUD_RATE 1000000
 
+#define RELUCTOR_TEETH 20
+#define TIMER_FREQUENCY 125000
+
 #define PWM_FREQUENCY 25000
 #define PWM_MIN 5
 #define PWM_MAX 95
-
-#define PIN_FR 15
-#define PIN_FL 6
-#define PIN_RR 5
-#define PIN_RL 7
-
-#define RELUCTOR_TEETH 20
-#define TIMER_FREQUENCY (CLOCK_GetIpFreq(kCLOCK_Lptmr0) / 4)
 
 void init_io();
 void input_map();

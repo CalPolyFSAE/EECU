@@ -16,6 +16,7 @@
 #define SECONDS(S)  ((S) * VCU_FREQUENCY)
 
 #define RTDS_TIME               SECONDS(2)
+// TODO - might have to increase this from 4s
 #define ALLOWED_PRECHARGE_TIME  SECONDS(4)
 #define MC_CHARGE_TIME          SECONDS(1)
 #define CHARGER_CONNECTED_TIME  SECONDS(1)
@@ -80,9 +81,9 @@ typedef struct {
     uint8_t TS_RDY;             // GPIO E2
     uint8_t TS_LIVE;            // GPIO B7
     uint8_t CHARGER_CONNECTED;  // CAN 0
-    uint8_t BMS_STATE;          // CAN 0
     int16_t BMS_VOLTAGE;        // CAN 0
     int16_t BMS_TEMPERATURE;    // CAN 0
+    uint8_t BMS_STATE;          // CAN 0
     uint8_t BMS_OK;             // GPIO E3
     uint8_t IMD_OK;             // GPIO D16
     uint8_t BSPD_OK;            // GPIO C8
