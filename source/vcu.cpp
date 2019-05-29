@@ -2,13 +2,34 @@
 #include "mc.h"
 #include "io.h"
 
+#ifdef BYPASS_DRIVER
 extern uint8_t userInput;
+#endif
+
+// determines fan power based on battery temperature
+static uint8_t fan_curve(int16_t temperature) {
+    uint8_t power;
+
+    if(temperature > (TEMPERATURE_LIMIT * 0.8)) {
+        power = 50;
+    } else if(temperature > (TEMPERATURE_LIMIT * 0.6)) {
+        power = 35;
+    } else if(temperature > (TEMPERATURE_LIMIT * 0.4)) {
+        power = 25;
+    } else if(temperature > (TEMPERATURE_LIMIT * 0.2)) {
+        power = 10;
+    } else {
+        power = 0;
+    }
+
+    return(power);
+}
 
 // maps throttle position to a torque value
 static int16_t torque_map(int8_t throttle, int8_t power, uint8_t limit) {
     int16_t torque;
 
-#ifdef BENCH_TEST
+#ifdef BYPASS_DRIVER
     torque = userInput * 10;
 
     if(torque > 100) {
@@ -18,7 +39,8 @@ static int16_t torque_map(int8_t throttle, int8_t power, uint8_t limit) {
     }
 #else    
     torque = (throttle * TORQUE_MAX) / 100;
-    
+ 
+    // TODO - test before uncommenting
     /*    
     if(power > limit) {
         torque -= (power - limit) * (power - limit) * 10;
@@ -37,40 +59,40 @@ static int16_t torque_map(int8_t throttle, int8_t power, uint8_t limit) {
 
 // checks if brakes are active
 static bool brakes_active(uint32_t front, uint32_t rear) {
-#ifdef BRAKES_OK
+#ifdef BYPASS_BRAKES
+    return(true);
+#else
     if((front > BFA) || (rear > BRA)) {
         return(true);
     } else {
         return(false);
     }
-#else
-    return(true);
 #endif
 }
 
 // checks if brakes are valid
 static bool brakes_valid(uint32_t front, uint32_t rear) {
-#ifdef BRAKES_OK
+#ifdef BYPASS_BRAKES
+    return(true);
+#else
     if((front > BRAKE_MIN) && (front < BRAKE_MAX) && (rear > BRAKE_MIN) && (rear < BRAKE_MAX)) {
         return(true);
     } else {
         return(false);
     }
-#else
-    return(true);
 #endif
 }
 
 // checks if throttles are valid
 static bool throttles_valid(int8_t throttle_1, int8_t throttle_2) {
-#ifdef THROTTLE_OK
+#ifdef BYPASS_THROTTLES
+    return(true);
+#else
     if(((throttle_1 - throttle_2) < 10) && ((throttle_1 - throttle_2) > -10)) {
         return(true);
     } else {
         return(false);
     }
-#else
-    return(true);
 #endif
 }
 
@@ -134,34 +156,29 @@ void VCU::motor_loop() {
     static uint32_t timer = 0;
     int8_t THROTTLE_AVG;
 
-#ifdef THROTTLE_OK
-    THROTTLE_AVG = (input.THROTTLE_1 + input.THROTTLE_2) / 2;
-#else
     THROTTLE_AVG = input.THROTTLE_2;
-#endif
+    //THROTTLE_AVG = (input.THROTTLE_1 + input.THROTTLE_2) / 2;
     
-    if(THROTTLE_AVG < 0) {
-        THROTTLE_AVG = 0;
-    } else if(THROTTLE_AVG > 100) {
+    if(THROTTLE_AVG > 100) {
         THROTTLE_AVG = 100;
+    } else if(THROTTLE_AVG < 0) {
+        THROTTLE_AVG = 0;
     }
 
     switch(state) {
         case STATE_STANDBY:
             output.MC_TORQUE = TORQUE_DIS;
 
-#ifdef BENCH_TEST
+#ifdef BYPASS_DRIVER
             if(!input.MC_POST_FAULT 
                && !input.MC_RUN_FAULT 
                && (output.AIR_POS == DIGITAL_HIGH) 
                && (output.AIR_NEG == DIGITAL_HIGH)) {
 #else
             if(/*(input.MC_EN == DIGITAL_HIGH) 
-               &&*/ !input.MC_POST_FAULT 
-               && !input.MC_RUN_FAULT 
-               && (THROTTLE_AVG < THROTTLE_LOW_LIMIT) 
-               && (output.AIR_POS == DIGITAL_HIGH) 
+               &&*/ (output.AIR_POS == DIGITAL_HIGH) 
                && (output.AIR_NEG == DIGITAL_HIGH) 
+               && (THROTTLE_AVG < THROTTLE_LOW_LIMIT) 
                && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR) 
                && brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)
                && throttles_valid(input.THROTTLE_1, input.THROTTLE_2)
@@ -169,6 +186,7 @@ void VCU::motor_loop() {
 #endif
                 state = STATE_DRIVING;
                 timer = 0;
+                mc_clear_faults();
             }
 
             break;
@@ -178,7 +196,7 @@ void VCU::motor_loop() {
                 output.RTDS = DIGITAL_LOW;
                 output.MC_TORQUE = torque_map(THROTTLE_AVG, (input.MC_VOLTAGE * input.MC_CURRENT) / 1000, input.POWER_LIMIT);
 
-#ifdef BENCH_TEST
+#ifdef BYPASS_DRIVER
                 if(input.MC_POST_FAULT 
                    || input.MC_RUN_FAULT 
                    || (output.AIR_POS == DIGITAL_LOW) 
@@ -311,8 +329,8 @@ void VCU::shutdown_loop() {
                 output.DCDC_DISABLE = DIGITAL_HIGH;
                 output.PRECHARGE = DIGITAL_LOW;
                 output.DISCHARGE = DIGITAL_HIGH;
-                output.FAN_EN = DIGITAL_HIGH;
-                output.FAN_PWM = (FAN_GAIN * input.BMS_TEMPERATURE) + FAN_OFFSET;
+                output.FAN_EN = (output.FAN_PWM > PWM_MIN) ? DIGITAL_HIGH : DIGITAL_LOW;
+                output.FAN_PWM = fan_curve(input.BMS_TEMPERATURE);
             } else {
                 timer++;
             }
@@ -345,20 +363,12 @@ void VCU::redundancy_loop() {
         timer++;
     }
 
-    // TODO - make sure this doesn't break anything
-    if(input.LATCH_SENSE == DIGITAL_HIGH) {
-        mc_torque_request(TORQUE_DIS);
-        mc_clear_faults();
-    }
-
-    if(input.SUPPLY_VOLTAGE > 3100) {
+    if(input.SUPPLY_VOLTAGE > SUPPLY_THRESHOLD) {
         output.SUPPLY_OK = DIGITAL_HIGH;
     } else {
         output.SUPPLY_OK = DIGITAL_LOW;
     }
 
-
-#ifdef BSPDREDUN_OK
     if(!((input.CURRENT_SENSE > CA) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
        && brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
         BSPD_OK = DIGITAL_HIGH;
@@ -371,11 +381,12 @@ void VCU::redundancy_loop() {
        && (input.BMS_OK == DIGITAL_HIGH)) {
         output.REDUNDANT_1 = DIGITAL_HIGH;
     } else {
-        output.REDUNDANT_1 = DIGITAL_LOW;
-    }
+#ifdef BYPASS_SAFETY
+        output.REDUNDANT_1 = DIGITAL_HIGH;
 #else
-    output.REDUNDANT_1 = DIGITAL_HIGH;
+        output.REDUNDANT_1 = DIGITAL_LOW;
 #endif
+    }
 
     output.REDUNDANT_2 = DIGITAL_HIGH;
 }

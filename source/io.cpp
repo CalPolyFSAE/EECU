@@ -5,7 +5,6 @@
 #include "canlight.h"
 #include "adc.h"
 #include "gpio.h"
-#include "fsl_pmc.h"
 #include "fsl_lptmr.h"
 #include "fsl_flexio.h"
 
@@ -254,20 +253,15 @@ void init_io() {
     can::canlight_config config;
     can::CANlight::canx_config canx_config;
 
-#ifdef BENCH_TEST
+#ifdef BYPASS_DRIVER
     uiinit();
 #endif
-    
+
     // initialize timer driver
     timer_init();
-
+    
     // initialize PWM driver
     pwm_init();
-
-    // TODO - might have to enable reset on low voltage detect if this doesnt fix brownouts
-    // initialize PMC
-    PMC_ClearLowVoltWarningFlag(PMC);
-    PMC_ClearLowVoltDetectFlag(PMC);
 
     // initialize GPIO driver
     gpio::GPIO::ConstructStatic();
@@ -297,13 +291,12 @@ void init_io() {
     PORTD->PCR[16] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     PORTC->PCR[8] |= PORT_PCR_PE(1) | PORT_PCR_PS(0);
     
-    // TODO - might not need these after fuse is put in for front harness
     // enable pull-up resistors on GPIO inputs
     PORTC->PCR[15] |= PORT_PCR_PE(1) | PORT_PCR_PS(1);
     PORTD->PCR[6] |= PORT_PCR_PE(1) | PORT_PCR_PS(1);
     PORTD->PCR[5] |= PORT_PCR_PE(1) | PORT_PCR_PS(1);
     PORTD->PCR[7] |= PORT_PCR_PE(1) | PORT_PCR_PS(1);
-
+    
     // configure GPIO callbacks
     gpio.config_function(gpio::PortC, wheel_gpio_callback);
     gpio.config_function(gpio::PortD, wheel_gpio_callback);
@@ -336,9 +329,6 @@ void init_io() {
     adc::ADC& adc = adc::ADC::StaticClass();
     vcu.input.THROTTLE_1_BASE = adc.read(ADC0, 14);
     vcu.input.THROTTLE_2_BASE = adc.read(ADC0, 15);
-    
-    // initialize supply voltage
-    vcu.input.SUPPLY_VOLTAGE = adc.read(ADC1, 2);
    
     // initialize CAN driver
     can::CANlight::ConstructStatic(&config);
@@ -373,15 +363,16 @@ void input_map() {
     vcu.input.IMD_OK = gpio.read(gpio::PortD, 16);
     vcu.input.BSPD_OK = gpio.read(gpio::PortC, 8);
     vcu.input.CURRENT_SENSE = adc.read(ADC0, 6);
+    vcu.input.SUPPLY_VOLTAGE = adc.read(ADC1, 2);
 
     if((timer % 10) == 0)
     {
         vcu.input.MC_EN = gpio.read(gpio::PortE, 6);
         vcu.input.LATCH_SENSE = gpio.read(gpio::PortA, 1);
-        //vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
-        //vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
         vcu.input.THROTTLE_1 =  - ((((int32_t)adc.read(ADC0, 14) - vcu.input.THROTTLE_1_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL));
         vcu.input.THROTTLE_2 = (((int32_t)adc.read(ADC0, 15) - vcu.input.THROTTLE_2_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL);
+        //vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
+        //vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
         vcu.input.BRAKE_FRONT = adc.read(ADC0, 7);
         vcu.input.BRAKE_REAR = adc.read(ADC0, 12);
         timer = 0;
@@ -413,6 +404,7 @@ void output_map() {
     
     pwm_set(vcu.output.FAN_PWM);
     mc_torque_request(vcu.output.MC_TORQUE);
+   
     // TODO - send correct information to dashboard
     dashboard_update(vcu.input.MC_RUN_FAULT);
     
@@ -440,7 +432,7 @@ uint32_t can_receive(uint8_t bus, uint8_t *data) {
     can::CANlight &can = can::CANlight::StaticClass();
     can::CANlight::frame frame = can.readrx(bus);
 
-    memcpy(data, frame.data, 8);
+    memcpy(data, frame.data, sizeof(frame.data));
 
     return(frame.id);
 }

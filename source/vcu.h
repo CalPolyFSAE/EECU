@@ -4,50 +4,52 @@
 #include "MKE18F16.h"
 #include "clock_config.h"
 
-//#define BENCH_TEST
-//#define THROTTLE_OK
-//#define BRAKES_OK
-//#define BSPDREDUN_OK
+//#define BYPASS_DRIVER
+#define BYPASS_BRAKES
+#define BYPASS_THROTTLES
+#define BYPASS_SAFETY
 
 #define VCU_FREQUENCY 100
 #define TIMER_PERIOD (BOARD_BOOTCLOCKRUN_CORE_CLOCK / VCU_FREQUENCY)
 
-#define VOLTS(V)    (((V) * 4095) / 5)
-#define SECONDS(S)  ((S) * VCU_FREQUENCY)
+#define SECONDS(S)          ((S) * VCU_FREQUENCY)
+#define VOLTS(V)            (((V) * 4095) / 5)
+#define KILOWATTS(KW)       (KW)
+#define NEWTONMETERS(NM)    (NM * 10)
+#define CELSIUS(C)          (C)
+#define PERCENT(P)          (P)
 
 #define RTDS_TIME               SECONDS(2)
-// TODO - might have to increase this from 4s
 #define ALLOWED_PRECHARGE_TIME  SECONDS(4)
 #define MC_CHARGE_TIME          SECONDS(1)
 #define CHARGER_CONNECTED_TIME  SECONDS(1)
 
-#define CA                  VOLTS(2.80)
-#define BFA                 VOLTS(0.51)
-#define BRA                 VOLTS(0.51)
-#define BRAKE_MIN           VOLTS(0.50)
-#define BRAKE_MAX           VOLTS(4.50)
-#define THROTTLE_NEG_MIN    VOLTS(1.68)
-#define THROTTLE_NEG_MAX    VOLTS(2.03)
-#define THROTTLE_POS_MIN    VOLTS(3.01)
-#define THROTTLE_POS_MAX    VOLTS(3.36)
+#define CA                      VOLTS(2.80)
+#define BFA                     VOLTS(0.51)
+#define BRA                     VOLTS(0.51)
+#define BRAKE_MIN               VOLTS(0.50)
+#define BRAKE_MAX               VOLTS(4.50)
+#define THROTTLE_NEG_MIN        VOLTS(1.68)
+#define THROTTLE_NEG_MAX        VOLTS(2.03)
+#define THROTTLE_POS_MIN        VOLTS(3.01)
+#define THROTTLE_POS_MAX        VOLTS(3.36)
+#define SUPPLY_THRESHOLD        VOLTS(3.79)
+
+#define DEFAULT_POWER_LIMIT     KILOWATTS(60)
+
+#define TORQUE_DIS              NEWTONMETERS(-1)
+#define TORQUE_MIN              NEWTONMETERS(0)
+#define TORQUE_MAX              NEWTONMETERS(10)
+
+#define TEMPERATURE_LIMIT       CELSIUS(60)
+
+#define THROTTLE_LOW_LIMIT      PERCENT(5)
+#define THROTTLE_HIGH_LIMIT     PERCENT(25)
+#define BATTERY_LIMIT           PERCENT(90)
 
 // percent travel of throttle
 #define THROTTLE_TRAVEL     (0.3)
-#define THROTTLE_FULLSCALE VOLTS(5)
-
-#define FAN_GAIN    1
-#define FAN_OFFSET  0
-
-#define THROTTLE_HIGH_LIMIT      5
-#define THROTTLE_LOW_LIMIT      25
-#define BATTERY_LIMIT           90
-
-#define TORQUE_DIS    -1
-#define TORQUE_MIN     0
-//#define TORQUE_MAX  2280
-#define TORQUE_MAX  100
-
-#define DEFAULT_POWER_LIMIT     60
+#define THROTTLE_FULLSCALE  VOLTS(5)
 
 enum DIGITAL {
     DIGITAL_LOW,
