@@ -105,7 +105,7 @@ static void mc_can_callback() {
 static void update_dashboard() {
     uint8_t buffer[8];
     
-    buffer[7] = 0x00;
+    buffer[7] = vcu.input.TS_READY_SENSE;
     buffer[6] = vcu.input.LATCH_SENSE;
     buffer[5] = (vcu.input.MC_SPEED >> 8) & 0xFF;
     buffer[4] = vcu.input.MC_SPEED & 0xFF;
