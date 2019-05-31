@@ -3,12 +3,13 @@
 
 #include "MKE18F16.h"
 
-#define VCU_PRECHARGE   0x0B0
-#define VCU_DRIVER      0x0B1
-#define VCU_SPEED       0x0B2
-#define VCU_SAFETY      0x0B3
+#define VCU_UPDATE      0x100
+#define VCU_SAFETY      0x101
+#define VCU_PRECHARGE   0x102
+#define VCU_DRIVER      0x103
+#define VCU_SPEED       0x104
 
-#define DASHBOARD_ID    0x207
+#define DASHBOARD_ID    0x200
 #define BMS_ID          0x314
 #define CHARGER_ID      0x18FF50E5
 

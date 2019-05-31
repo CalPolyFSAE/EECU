@@ -78,7 +78,9 @@ static void gen_can_callback() {
     uint8_t buffer[8];
 
     switch(can_receive(GEN_CAN_BUS, buffer)) {
-        
+        case DASHBOARD_ID:
+            vcu.input.POWER_LIMIT = buffer[0];
+
         case BMS_ID:
             vcu.input.BMS_STATE = buffer[4];
             vcu.input.BMS_TEMPERATURE = (buffer[3] << 8) | buffer[2];
@@ -99,56 +101,24 @@ static void mc_can_callback() {
     mc_receive_broadcast_message();
 }
 
-// logs precharge signals
-static void log_precharge(uint8_t bus) {
+// updates the dashboard
+static void update_dashboard() {
     uint8_t buffer[8];
     
-    buffer[7] = vcu.output.AIR_POS;
-    buffer[6] = vcu.output.AIR_NEG;
-    buffer[5] = vcu.output.PRECHARGE;
-    buffer[4] = vcu.output.DISCHARGE;
-    buffer[3] = vcu.output.PUMP_EN;
-    buffer[2] = vcu.output.DCDC_DISABLE;
-    buffer[1] = vcu.input.LATCH_SENSE;
-    buffer[0] = vcu.output.PRECHARGE_FAILED;
-
-    can_send(bus, VCU_PRECHARGE, buffer);
-}
-
-// logs driver signals
-static void log_driver(uint8_t bus) {
-    uint8_t buffer[8];
+    buffer[7] = 0x00;
+    buffer[6] = vcu.input.LATCH_SENSE;
+    buffer[5] = (vcu.input.MC_SPEED >> 8) & 0xFF;
+    buffer[4] = vcu.input.MC_SPEED & 0xFF;
+    buffer[3] = (vcu.input.SUPPLY_VOLTAGE >> 8) & 0xFF;
+    buffer[2] = vcu.input.SUPPLY_VOLTAGE & 0xFF;
+    buffer[1] = (vcu.input.BMS_VOLTAGE >> 8) & 0xFF;
+    buffer[0] = vcu.input.BMS_VOLTAGE & 0xFF;
     
-    buffer[7] = (vcu.input.BRAKE_FRONT >> 16) & 0xFF;
-    buffer[6] = (vcu.input.BRAKE_FRONT >> 8) & 0xFF;
-    buffer[5] = vcu.input.BRAKE_FRONT & 0xFF;
-    buffer[4] = (vcu.input.BRAKE_REAR >> 16) & 0xFF;
-    buffer[3] = (vcu.input.BRAKE_REAR >> 8) & 0xFF;
-    buffer[2] = vcu.input.BRAKE_REAR & 0xFF;
-    buffer[1] = vcu.input.THROTTLE_1;
-    buffer[0] = vcu.input.THROTTLE_2;
-
-    can_send(bus, VCU_DRIVER, buffer);
-}
-
-// logs speed signals
-static void log_speed(uint8_t bus) {
-    uint8_t buffer[8];
-    
-    buffer[7] = (vcu.input.WHEEL_SPEED_FR >> 8) & 0xFF;
-    buffer[6] = vcu.input.WHEEL_SPEED_FR & 0xFF;
-    buffer[5] = (vcu.input.WHEEL_SPEED_FL >> 8) & 0xFF;
-    buffer[4] = vcu.input.WHEEL_SPEED_FL & 0xFF;
-    buffer[3] = (vcu.input.WHEEL_SPEED_RR >> 8) & 0xFF;
-    buffer[2] = vcu.input.WHEEL_SPEED_RR & 0xFF;
-    buffer[1] = (vcu.input.WHEEL_SPEED_RL >> 8) & 0xFF;
-    buffer[0] = vcu.input.WHEEL_SPEED_RL & 0xFF;
-
-    can_send(bus, VCU_SPEED, buffer);
+    can_send(GEN_CAN_BUS, VCU_UPDATE, buffer);
 }
 
 // logs safety signals
-static void log_safety(uint8_t bus) {
+static void log_safety() {
     uint8_t buffer[8];
     
     buffer[7] = 0x00;
@@ -160,23 +130,55 @@ static void log_safety(uint8_t bus) {
     buffer[1] = vcu.output.REDUNDANT_1;
     buffer[0] = vcu.output.REDUNDANT_2;
     
-    can_send(bus, VCU_SAFETY, buffer);
+    can_send(GEN_CAN_BUS, VCU_SAFETY, buffer);
 }
 
-// updates the dashboard
-static void dashboard_update(uint32_t message) {
+// logs precharge signals
+static void log_precharge() {
     uint8_t buffer[8];
     
-    buffer[7] = 0x00;
-    buffer[6] = 0x00;
-    buffer[5] = 0x00;
-    buffer[4] = 0x00;
-    buffer[3] = (message > 24) & 0xFF;
-    buffer[2] = (message > 16) & 0xFF;
-    buffer[1] = (message > 8) & 0xFF;
-    buffer[0] = message & 0xFF;
+    buffer[7] = vcu.output.AIR_POS;
+    buffer[6] = vcu.output.AIR_NEG;
+    buffer[5] = vcu.output.PRECHARGE;
+    buffer[4] = vcu.output.DISCHARGE;
+    buffer[3] = vcu.output.PUMP_EN;
+    buffer[2] = vcu.output.DCDC_DISABLE;
+    buffer[1] = vcu.input.LATCH_SENSE;
+    buffer[0] = vcu.output.PRECHARGE_FAILED;
+
+    can_send(GEN_CAN_BUS, VCU_PRECHARGE, buffer);
+}
+
+// logs driver signals
+static void log_driver() {
+    uint8_t buffer[8];
     
-    can_send(GEN_CAN_BUS, DASHBOARD_ID, buffer);
+    buffer[7] = (vcu.input.BRAKE_FRONT >> 16) & 0xFF;
+    buffer[6] = (vcu.input.BRAKE_FRONT >> 8) & 0xFF;
+    buffer[5] = vcu.input.BRAKE_FRONT & 0xFF;
+    buffer[4] = (vcu.input.BRAKE_REAR >> 16) & 0xFF;
+    buffer[3] = (vcu.input.BRAKE_REAR >> 8) & 0xFF;
+    buffer[2] = vcu.input.BRAKE_REAR & 0xFF;
+    buffer[1] = vcu.input.THROTTLE_1;
+    buffer[0] = vcu.input.THROTTLE_2;
+
+    can_send(GEN_CAN_BUS, VCU_DRIVER, buffer);
+}
+
+// logs speed signals
+static void log_speed() {
+    uint8_t buffer[8];
+    
+    buffer[7] = (vcu.input.WHEEL_SPEED_FR >> 8) & 0xFF;
+    buffer[6] = vcu.input.WHEEL_SPEED_FR & 0xFF;
+    buffer[5] = (vcu.input.WHEEL_SPEED_FL >> 8) & 0xFF;
+    buffer[4] = vcu.input.WHEEL_SPEED_FL & 0xFF;
+    buffer[3] = (vcu.input.WHEEL_SPEED_RR >> 8) & 0xFF;
+    buffer[2] = vcu.input.WHEEL_SPEED_RR & 0xFF;
+    buffer[1] = (vcu.input.WHEEL_SPEED_RL >> 8) & 0xFF;
+    buffer[0] = vcu.input.WHEEL_SPEED_RL & 0xFF;
+
+    can_send(GEN_CAN_BUS, VCU_SPEED, buffer);
 }
 
 // initializes the timer driver
@@ -385,6 +387,8 @@ void input_map() {
 
 // writes VCU output signals
 void output_map() {
+    static uint8_t timer = 0;
+    
     gpio::GPIO &gpio = gpio::GPIO::StaticClass();
     
     vcu.output.RTDS ? gpio.set(gpio::PortD, 4) : gpio.clear(gpio::PortD, 4);
@@ -404,14 +408,20 @@ void output_map() {
     
     pwm_set(vcu.output.FAN_PWM);
     mc_torque_request(vcu.output.MC_TORQUE);
-   
-    // TODO - send correct information to dashboard
-    dashboard_update(vcu.input.MC_RUN_FAULT);
     
-    log_precharge(MC_CAN_BUS);
-    log_driver(MC_CAN_BUS);
-    log_speed(MC_CAN_BUS);
-    log_safety(MC_CAN_BUS);
+    if((timer % 10) == 0)
+    {
+        update_dashboard();
+        log_safety();
+        log_precharge();
+        log_driver();
+        log_speed();
+        timer = 0;
+    }
+    else
+    {
+        timer++;
+    }
 }
 
 // sends a CAN message on the specified bus

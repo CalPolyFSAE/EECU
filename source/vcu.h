@@ -5,9 +5,9 @@
 #include "clock_config.h"
 
 //#define BYPASS_DRIVER
-#define BYPASS_BRAKES
+//#define BYPASS_BRAKES
 #define BYPASS_THROTTLES
-#define BYPASS_SAFETY
+//#define BYPASS_SAFETY
 
 #define VCU_FREQUENCY 100
 #define TIMER_PERIOD (BOARD_BOOTCLOCKRUN_CORE_CLOCK / VCU_FREQUENCY)
