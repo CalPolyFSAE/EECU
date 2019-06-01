@@ -6,7 +6,7 @@
 
 //#define BYPASS_DRIVER
 //#define BYPASS_BRAKES
-#define BYPASS_THROTTLES
+//#define BYPASS_THROTTLES
 //#define BYPASS_SAFETY
 
 #define VCU_FREQUENCY 100

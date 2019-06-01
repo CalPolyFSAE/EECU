@@ -124,9 +124,9 @@ VCU::VCU() {
     input.BRAKE_FRONT = 0;
     input.BRAKE_REAR = 0;
     input.WHEEL_SPEED_FR = 0;
-    input.WHEEL_SPEED_FL = DIGITAL_LOW;
-    input.WHEEL_SPEED_RR = DIGITAL_LOW;
-    input.WHEEL_SPEED_RL = DIGITAL_LOW;
+    input.WHEEL_SPEED_FL = 0;
+    input.WHEEL_SPEED_RR = 0;
+    input.WHEEL_SPEED_RL = 0;
     input.SUPPLY_VOLTAGE = 0;
 
     output.MC_TORQUE = TORQUE_DIS;
@@ -156,8 +156,7 @@ void VCU::motor_loop() {
     static uint32_t timer = 0;
     int8_t THROTTLE_AVG;
 
-    THROTTLE_AVG = input.THROTTLE_2;
-    //THROTTLE_AVG = (input.THROTTLE_1 + input.THROTTLE_2) / 2;
+    THROTTLE_AVG = (input.THROTTLE_1 + input.THROTTLE_2) / 2;
     
     if(THROTTLE_AVG > 100) {
         THROTTLE_AVG = 100;
@@ -167,12 +166,11 @@ void VCU::motor_loop() {
 
     switch(state) {
         case STATE_STANDBY:
+            output.RTDS = DIGITAL_LOW;
             output.MC_TORQUE = TORQUE_DIS;
 
 #ifdef BYPASS_DRIVER
-            if(!input.MC_POST_FAULT 
-               && !input.MC_RUN_FAULT 
-               && (output.AIR_POS == DIGITAL_HIGH) 
+            if((output.AIR_POS == DIGITAL_HIGH) 
                && (output.AIR_NEG == DIGITAL_HIGH)) {
 #else
             if((input.MC_EN == DIGITAL_HIGH) 
@@ -331,6 +329,14 @@ void VCU::shutdown_loop() {
                 output.FAN_EN = (output.FAN_PWM > PWM_MIN) ? DIGITAL_HIGH : DIGITAL_LOW;
                 output.FAN_PWM = fan_curve(input.BMS_TEMPERATURE);
             } else {
+                output.AIR_POS = DIGITAL_HIGH;
+                output.AIR_NEG = DIGITAL_HIGH;
+                output.PUMP_EN = DIGITAL_LOW;
+                output.DCDC_DISABLE = DIGITAL_LOW;
+                output.PRECHARGE = DIGITAL_LOW;
+                output.DISCHARGE = DIGITAL_HIGH;
+                output.FAN_EN = DIGITAL_LOW;
+                output.FAN_PWM = PWM_MIN;
                 timer++;
             }
 

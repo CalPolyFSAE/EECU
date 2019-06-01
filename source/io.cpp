@@ -396,7 +396,7 @@ void output_map() {
     vcu.output.AIR_POS ? gpio.set(gpio::PortB, 0) : gpio.clear(gpio::PortB, 0);
     vcu.output.AIR_NEG ? gpio.set(gpio::PortC, 9) : gpio.clear(gpio::PortC, 9);
     vcu.output.PUMP_EN ? gpio.clear(gpio::PortE, 11) : gpio.set(gpio::PortE, 11);
-    vcu.output.DCDC_DISABLE ? gpio.set(gpio::PortD, 13) : gpio.clear(gpio::PortD, 13);
+    vcu.output.DCDC_DISABLE ? gpio.set(gpio::PortD, 3) : gpio.clear(gpio::PortD, 3);
     vcu.output.PRECHARGE ? gpio.set(gpio::PortB, 13) : gpio.clear(gpio::PortB, 13);
     vcu.output.DISCHARGE ? gpio.set(gpio::PortB, 12) : gpio.clear(gpio::PortB, 12);
     vcu.output.REDUNDANT_1 ? gpio.set(gpio::PortE, 7) : gpio.clear(gpio::PortE, 7);
