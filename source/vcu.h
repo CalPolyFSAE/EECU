@@ -25,14 +25,16 @@
 #define CHARGER_CONNECTED_TIME  SECONDS(1)
 
 #define CA                      VOLTS(2.80)
-#define BFA                     VOLTS(0.51)
-#define BRA                     VOLTS(0.51)
+#define BFA                     VOLTS(0.55)
+#define BRA                     VOLTS(0.54)
 #define BRAKE_MIN               VOLTS(0.50)
 #define BRAKE_MAX               VOLTS(4.50)
-#define THROTTLE_NEG_MIN        VOLTS(1.68)
-#define THROTTLE_NEG_MAX        VOLTS(2.03)
-#define THROTTLE_POS_MIN        VOLTS(3.01)
-#define THROTTLE_POS_MAX        VOLTS(3.36)
+//#define THROTTLE_1_MIN          VOLTS(1.03)
+//#define THROTTLE_1_MAX          VOLTS(2.64)
+#define THROTTLE_1_MIN          VOLTS(2.64)
+#define THROTTLE_1_MAX          VOLTS(1.03)
+#define THROTTLE_2_MIN          VOLTS(2.08)
+#define THROTTLE_2_MAX          VOLTS(3.79)
 #define SUPPLY_THRESHOLD        VOLTS(3.79)
 
 #define DEFAULT_POWER_LIMIT     KILOWATTS(60)
@@ -48,7 +50,7 @@
 #define BATTERY_LIMIT           PERCENT(90)
 
 // percent travel of throttle
-#define THROTTLE_TRAVEL     (0.3)
+#define THROTTLE_TRAVEL     (0.35)
 #define THROTTLE_FULLSCALE  VOLTS(5)
 
 enum DIGITAL {

@@ -367,20 +367,19 @@ void input_map() {
     vcu.input.CURRENT_SENSE = adc.read(ADC0, 6);
     vcu.input.SUPPLY_VOLTAGE = adc.read(ADC1, 2);
 
-    if((timer % 10) == 0)
-    {
+    if((timer % 10) == 0) {
         vcu.input.MC_EN = gpio.read(gpio::PortE, 6);
         vcu.input.LATCH_SENSE = gpio.read(gpio::PortA, 1);
-        vcu.input.THROTTLE_1 =  - ((((int32_t)adc.read(ADC0, 14) - vcu.input.THROTTLE_1_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL));
-        vcu.input.THROTTLE_2 = (((int32_t)adc.read(ADC0, 15) - vcu.input.THROTTLE_2_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL);
-        //vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_NEG_MAX) * 100) / (THROTTLE_NEG_MIN - THROTTLE_NEG_MAX);
-        //vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_POS_MIN) * 100) / (THROTTLE_POS_MAX - THROTTLE_POS_MIN);
+        //vcu.input.THROTTLE_1 = adc.read(ADC0, 14);
+        //vcu.input.THROTTLE_2 = adc.read(ADC0, 15);
+        //vcu.input.THROTTLE_1 =  - ((((int32_t)adc.read(ADC0, 14) - vcu.input.THROTTLE_1_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL));
+        //vcu.input.THROTTLE_2 = (((int32_t)adc.read(ADC0, 15) - vcu.input.THROTTLE_2_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL);
+        vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_1_MIN) * 100) / (THROTTLE_1_MAX - THROTTLE_1_MIN);
+        vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_2_MIN) * 100) / (THROTTLE_2_MAX - THROTTLE_2_MIN);
         vcu.input.BRAKE_FRONT = adc.read(ADC0, 7);
         vcu.input.BRAKE_REAR = adc.read(ADC0, 12);
         timer = 0;
-    }
-    else
-    {
+    } else {
         timer++;
     }
 }
@@ -409,17 +408,14 @@ void output_map() {
     pwm_set(vcu.output.FAN_PWM);
     mc_torque_request(vcu.output.MC_TORQUE);
     
-    if((timer % 10) == 0)
-    {
+    if((timer % 10) == 0) {
         update_dashboard();
         log_safety();
         log_precharge();
         log_driver();
         log_speed();
         timer = 0;
-    }
-    else
-    {
+    } else {
         timer++;
     }
 }
