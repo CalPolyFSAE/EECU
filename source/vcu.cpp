@@ -164,6 +164,19 @@ void VCU::motor_loop() {
         THROTTLE_AVG = 0;
     }
 
+    uint32_t motorword = 0;
+    motorword |= input.MC_EN<<0;
+    motorword |= output.AIR_POS<<1;
+    motorword |= output.AIR_NEG<<2;
+    motorword |= (THROTTLE_AVG < THROTTLE_LOW_LIMIT)<<3;
+    motorword |= (brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR))<<4;
+    motorword |= (brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR))<<5;
+    motorword |= (throttles_valid(input.THROTTLE_1, input.THROTTLE_2))<<6;
+    motorword |= (input.MC_POST_FAULT ? 1 : 0)<<7;
+    motorword |= (input.MC_RUN_FAULT ? 1 : 0)<<8;
+
+    output.MOTORWORD = motorword;
+
     switch(state) {
         case STATE_STANDBY:
             output.RTDS = DIGITAL_LOW;
@@ -233,6 +246,8 @@ void VCU::motor_loop() {
 void VCU::shutdown_loop() {
     static state_t state = STATE_AIR_OFF;
     static uint32_t timer = 0;
+
+    
 
     switch(state) {
         case STATE_AIR_OFF:

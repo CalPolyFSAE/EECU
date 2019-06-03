@@ -8,6 +8,7 @@
 #define VCU_PRECHARGE   0x102
 #define VCU_DRIVER      0x103
 #define VCU_SPEED       0x104
+#define VCU_STATUS      0x105
 
 #define DASHBOARD_ID    0x200
 #define BMS_ID          0x314

@@ -119,6 +119,7 @@ typedef struct {
     uint8_t SUPPLY_OK;          // GPIO A7
     //uint8_t GENERAL_PURPOSE_1;  // GPIO A7
     //uint8_t GENERAL_PURPOSE_2;  // GPIO D2
+    uint16_t MOTORWORD;
 } output_t;
 
 class VCU {

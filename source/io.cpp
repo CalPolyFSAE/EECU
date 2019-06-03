@@ -117,6 +117,16 @@ static void update_dashboard() {
     can_send(GEN_CAN_BUS, VCU_UPDATE, buffer);
 }
 
+static void log_status() {
+    uint8_t buffer[8];
+    memset(buffer, 0, 8);
+
+    buffer[0] = vcu.output.MOTORWORD & 0xff;
+    buffer[1] = (vcu.output.MOTORWORD>>8) & 0xff;
+
+    can_send(GEN_CAN_BUS, VCU_STATUS, buffer);
+}
+
 // logs safety signals
 static void log_safety() {
     uint8_t buffer[8];
@@ -415,6 +425,7 @@ void output_map() {
         log_precharge();
         log_driver();
         log_speed();
+        log_status();
         timer = 0;
     } else {
         timer++;
