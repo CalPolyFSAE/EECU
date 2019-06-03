@@ -26,8 +26,8 @@
 
 #define CA                      VOLTS(2.80)
 #define BFA                     VOLTS(0.55)
-#define BRA                     VOLTS(0.54)
-#define BRAKE_MIN               VOLTS(0.50)
+#define BRA                     VOLTS(0.55)
+#define BRAKE_MIN               VOLTS(0.20)
 #define BRAKE_MAX               VOLTS(4.50)
 //#define THROTTLE_1_MIN          VOLTS(1.03)
 //#define THROTTLE_1_MAX          VOLTS(2.64)
@@ -35,15 +35,15 @@
 #define THROTTLE_1_MAX          VOLTS(1.03)
 #define THROTTLE_2_MIN          VOLTS(2.08)
 #define THROTTLE_2_MAX          VOLTS(3.79)
-#define SUPPLY_THRESHOLD        VOLTS(3.79)
+#define SUPPLY_THRESHOLD        3000
 
 #define DEFAULT_POWER_LIMIT     KILOWATTS(60)
 
 #define TORQUE_DIS              NEWTONMETERS(-1)
 #define TORQUE_MIN              NEWTONMETERS(0)
-#define TORQUE_MAX              NEWTONMETERS(10)
+#define TORQUE_MAX              NEWTONMETERS(20)
 
-#define TEMPERATURE_LIMIT       CELSIUS(60)
+#define TEMPERATURE_LIMIT       CELSIUS(40)
 
 #define THROTTLE_LOW_LIMIT      PERCENT(5)
 #define THROTTLE_HIGH_LIMIT     PERCENT(25)

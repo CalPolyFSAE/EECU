@@ -249,7 +249,8 @@ void VCU::shutdown_loop() {
                && output.PRECHARGE_FAILED == DIGITAL_HIGH) {
                 output.PRECHARGE_FAILED = DIGITAL_LOW;
             } else if(input.TS_READY_SENSE == DIGITAL_HIGH
-                      && output.PRECHARGE_FAILED == DIGITAL_LOW) {
+                      && output.PRECHARGE_FAILED == DIGITAL_LOW
+                      && output.SUPPLY_OK) {
                 state = STATE_PRECHARGE;
                 timer = 0;
             }
@@ -340,7 +341,10 @@ void VCU::shutdown_loop() {
                 timer++;
             }
 
-            if(input.TS_READY_SENSE == DIGITAL_LOW) {
+            if(input.TS_READY_SENSE == DIGITAL_LOW
+                    || input.BMS_TEMPERATURE > TEMPERATURE_LIMIT
+                    || !output.SUPPLY_OK) {
+                output.PRECHARGE_FAILED = DIGITAL_HIGH;
                 state = STATE_AIR_OFF;
             }
 

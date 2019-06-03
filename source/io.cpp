@@ -366,6 +366,7 @@ void input_map() {
     vcu.input.BSPD_OK = gpio.read(gpio::PortC, 8);
     vcu.input.CURRENT_SENSE = adc.read(ADC0, 6);
     vcu.input.SUPPLY_VOLTAGE = adc.read(ADC1, 2);
+    vcu.output.SUPPLY_OK = vcu.input.SUPPLY_VOLTAGE > SUPPLY_THRESHOLD ? 1 : 0;
 
     if((timer % 10) == 0) {
         vcu.input.MC_EN = gpio.read(gpio::PortE, 6);
