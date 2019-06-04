@@ -163,10 +163,10 @@ static void log_precharge() {
 static void log_driver() {
     uint8_t buffer[8];
     
-    buffer[7] = (vcu.input.BRAKE_FRONT >> 16) & 0xFF;
-    buffer[6] = (vcu.input.BRAKE_FRONT >> 8) & 0xFF;
-    buffer[5] = vcu.input.BRAKE_FRONT & 0xFF;
-    buffer[4] = (vcu.input.BRAKE_REAR >> 16) & 0xFF;
+    buffer[7] = 0x00;
+    buffer[6] = 0x00;
+    buffer[5] = (vcu.input.BRAKE_FRONT >> 8) & 0xFF;
+    buffer[4] = vcu.input.BRAKE_FRONT & 0xFF;
     buffer[3] = (vcu.input.BRAKE_REAR >> 8) & 0xFF;
     buffer[2] = vcu.input.BRAKE_REAR & 0xFF;
     buffer[1] = vcu.input.THROTTLE_1;
