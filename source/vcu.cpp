@@ -158,10 +158,10 @@ VCU::VCU() {
 void VCU::motor_loop() {
     static state_t state = STATE_STANDBY;
     static uint32_t timer = 0;
-    int8_t THROTTLE_AVG;
-    int8_t MC_POWER;
-    uint16_t WHEEL_AVG_F;
-    uint16_t WHEEL_AVG_R;
+    static int8_t THROTTLE_AVG;
+    static int8_t MC_POWER;
+    static uint16_t WHEEL_AVG_F;
+    static uint16_t WHEEL_AVG_R;
     
     MC_POWER = (input.MC_VOLTAGE * input.MC_CURRENT) / 1000;
     WHEEL_AVG_F = (input.WHEEL_SPEED_FR + input.WHEEL_SPEED_FL) / 2;
@@ -378,7 +378,7 @@ void VCU::shutdown_loop() {
 void VCU::redundancy_loop() {
     static uint32_t timer = 0;
     static uint8_t CHARGER_CONNECTED = 0;
-    uint8_t BSPD_OK;
+    static uint8_t BSPD_OK;
     
     if(timer > CHARGER_CONNECTED_TIME) {
         if(input.CHARGER_CONNECTED == CHARGER_CONNECTED) {
