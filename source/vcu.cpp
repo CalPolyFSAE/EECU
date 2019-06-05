@@ -26,7 +26,7 @@ static uint8_t fan_curve(int16_t temperature) {
 }
 
 // maps throttle position to a torque value
-static int16_t torque_map(int8_t throttle, int8_t power, uint8_t limit) {
+static int16_t torque_map(int8_t throttle, int8_t power, uint8_t limit, uint16_t front_wheels, uint16_t rear_wheels) {
     int16_t torque;
 
 #ifdef BYPASS_DRIVER
@@ -39,13 +39,18 @@ static int16_t torque_map(int8_t throttle, int8_t power, uint8_t limit) {
     }
 #else    
     torque = (throttle * TORQUE_MAX) / 100;
- 
-    // TODO - test before uncommenting
-    /*    
+
+#ifdef POWER_LIMITING
     if(power > limit) {
         torque -= (power - limit) * (power - limit) * 10;
     }
-    */    
+#endif
+
+#ifdef TRACTION_CONTROL
+    if(rear_wheels > front_wheels) {
+        torque -= rear_wheels - front_wheels;
+    }
+#endif
     
     if(torque > TORQUE_MAX) {
         torque = TORQUE_MAX;
@@ -105,9 +110,9 @@ VCU::VCU() {
     input.MC_VOLTAGE = 0;
     input.MC_SPEED = 0;
     input.THROTTLE_1 = 0;
-    input.THROTTLE_1_BASE = 0;
     input.THROTTLE_2 = 0;
-    input.THROTTLE_2_BASE = 0;
+    //input.THROTTLE_1_BASE = 0;
+    //input.THROTTLE_2_BASE = 0;
     input.POWER_LIMIT = DEFAULT_POWER_LIMIT;
     input.LATCH_SENSE = DIGITAL_LOW;
     input.TS_READY_SENSE = DIGITAL_LOW;
@@ -144,8 +149,7 @@ VCU::VCU() {
     output.FAN_EN = DIGITAL_LOW;
     output.FAN_PWM = DIGITAL_LOW;
     output.SUPPLY_OK = DIGITAL_LOW;
-    //output.GENERAL_PURPOSE_1 = DIGITAL_LOW;
-    //output.GENERAL_PURPOSE_2 = DIGITAL_LOW;
+    output.STATUS = 0;
 
     flag = false;
 }
@@ -155,28 +159,21 @@ void VCU::motor_loop() {
     static state_t state = STATE_STANDBY;
     static uint32_t timer = 0;
     int8_t THROTTLE_AVG;
-
-    THROTTLE_AVG = (input.THROTTLE_1 + input.THROTTLE_2) / 2;
+    int8_t MC_POWER;
+    uint16_t WHEEL_AVG_F;
+    uint16_t WHEEL_AVG_R;
     
+    MC_POWER = (input.MC_VOLTAGE * input.MC_CURRENT) / 1000;
+    WHEEL_AVG_F = (input.WHEEL_SPEED_FR + input.WHEEL_SPEED_FL) / 2;
+    WHEEL_AVG_R = (input.WHEEL_SPEED_RR + input.WHEEL_SPEED_RL) / 2;
+    THROTTLE_AVG = (input.THROTTLE_1 + input.THROTTLE_2) / 2;
+
     if(THROTTLE_AVG > 100) {
         THROTTLE_AVG = 100;
     } else if(THROTTLE_AVG < 0) {
         THROTTLE_AVG = 0;
     }
-
-    uint32_t motorword = 0;
-    motorword |= input.MC_EN<<0;
-    motorword |= output.AIR_POS<<1;
-    motorword |= output.AIR_NEG<<2;
-    motorword |= (THROTTLE_AVG < THROTTLE_LOW_LIMIT)<<3;
-    motorword |= (brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR))<<4;
-    motorword |= (brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR))<<5;
-    motorword |= (throttles_valid(input.THROTTLE_1, input.THROTTLE_2))<<6;
-    motorword |= (input.MC_POST_FAULT ? 1 : 0)<<7;
-    motorword |= (input.MC_RUN_FAULT ? 1 : 0)<<8;
-
-    output.MOTORWORD = motorword;
-
+    
     switch(state) {
         case STATE_STANDBY:
             output.RTDS = DIGITAL_LOW;
@@ -204,7 +201,7 @@ void VCU::motor_loop() {
         case STATE_DRIVING:
             if(timer > RTDS_TIME) {
                 output.RTDS = DIGITAL_LOW;
-                output.MC_TORQUE = torque_map(THROTTLE_AVG, (input.MC_VOLTAGE * input.MC_CURRENT) / 1000, input.POWER_LIMIT);
+                output.MC_TORQUE = torque_map(THROTTLE_AVG, MC_POWER, input.POWER_LIMIT, WHEEL_AVG_F, WHEEL_AVG_R);
 
 #ifdef BYPASS_DRIVER
                 if(input.MC_POST_FAULT 
@@ -240,14 +237,23 @@ void VCU::motor_loop() {
     } else {
         output.BRAKE_LIGHT = DIGITAL_LOW;
     }
+
+    output.STATUS = 0;
+    output.STATUS |= (input.MC_RUN_FAULT ? 1 : 0) << 8;
+    output.STATUS |= (input.MC_POST_FAULT ? 1 : 0) << 7;
+    output.STATUS |= (throttles_valid(input.THROTTLE_1, input.THROTTLE_2) ? 1 : 0) << 6;
+    output.STATUS |= (brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR) ? 1 : 0) << 5;
+    output.STATUS |= (brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR) ? 1 : 0) << 4;
+    output.STATUS |= (THROTTLE_AVG < THROTTLE_LOW_LIMIT ? 1 : 0) << 3;
+    output.STATUS |= output.AIR_NEG << 2;
+    output.STATUS |= output.AIR_POS << 1;
+    output.STATUS |= input.MC_EN << 0;
 } 
 
 // VCU shutdown loop
 void VCU::shutdown_loop() {
     static state_t state = STATE_AIR_OFF;
     static uint32_t timer = 0;
-
-    
 
     switch(state) {
         case STATE_AIR_OFF:
@@ -260,12 +266,11 @@ void VCU::shutdown_loop() {
             output.FAN_EN = DIGITAL_LOW;
             output.FAN_PWM = PWM_MIN;
 
-            if(input.TS_READY_SENSE == DIGITAL_LOW
-               && output.PRECHARGE_FAILED == DIGITAL_HIGH) {
+            if((input.TS_READY_SENSE == DIGITAL_LOW)
+               && (output.PRECHARGE_FAILED == DIGITAL_HIGH)) {
                 output.PRECHARGE_FAILED = DIGITAL_LOW;
-            } else if(input.TS_READY_SENSE == DIGITAL_HIGH
-                      && output.PRECHARGE_FAILED == DIGITAL_LOW
-                      && output.SUPPLY_OK) {
+            } else if((input.TS_READY_SENSE == DIGITAL_HIGH)
+                      && (output.PRECHARGE_FAILED == DIGITAL_LOW)) {
                 state = STATE_PRECHARGE;
                 timer = 0;
             }
@@ -356,11 +361,10 @@ void VCU::shutdown_loop() {
                 timer++;
             }
 
-            if(input.TS_READY_SENSE == DIGITAL_LOW
-                    || input.BMS_TEMPERATURE > TEMPERATURE_LIMIT
-                    || !output.SUPPLY_OK) {
-                output.PRECHARGE_FAILED = DIGITAL_HIGH;
+            if((input.TS_READY_SENSE == DIGITAL_LOW)
+               || (input.BMS_TEMPERATURE > TEMPERATURE_LIMIT)) {
                 state = STATE_AIR_OFF;
+                output.PRECHARGE_FAILED = DIGITAL_HIGH;
             }
 
             break;
@@ -375,7 +379,7 @@ void VCU::redundancy_loop() {
     static uint32_t timer = 0;
     static uint8_t CHARGER_CONNECTED = 0;
     uint8_t BSPD_OK;
-
+    
     if(timer > CHARGER_CONNECTED_TIME) {
         if(input.CHARGER_CONNECTED == CHARGER_CONNECTED) {
             input.CHARGER_CONNECTED = 0;

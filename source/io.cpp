@@ -117,16 +117,6 @@ static void update_dashboard() {
     can_send(GEN_CAN_BUS, VCU_UPDATE, buffer);
 }
 
-static void log_status() {
-    uint8_t buffer[8];
-    memset(buffer, 0, 8);
-
-    buffer[0] = vcu.output.MOTORWORD & 0xff;
-    buffer[1] = (vcu.output.MOTORWORD>>8) & 0xff;
-
-    can_send(GEN_CAN_BUS, VCU_STATUS, buffer);
-}
-
 // logs safety signals
 static void log_safety() {
     uint8_t buffer[8];
@@ -189,6 +179,22 @@ static void log_speed() {
     buffer[0] = vcu.input.WHEEL_SPEED_RL & 0xFF;
 
     can_send(GEN_CAN_BUS, VCU_SPEED, buffer);
+}
+
+// logs status signals
+static void log_status() {
+    uint8_t buffer[8];
+
+    buffer[7] = 0x00;
+    buffer[6] = 0x00;
+    buffer[5] = 0x00;
+    buffer[4] = 0x00;
+    buffer[3] = 0x00;
+    buffer[2] = 0x00;
+    buffer[1] = (vcu.output.STATUS >> 8) & 0xFF;
+    buffer[0] = vcu.output.STATUS & 0xFF;
+
+    can_send(GEN_CAN_BUS, VCU_STATUS, buffer);
 }
 
 // initializes the timer driver
@@ -332,15 +338,14 @@ void init_io() {
     gpio.out_dir(gpio::PortA, 6);
     gpio.out_dir(gpio::PortD, 0);
     gpio.out_dir(gpio::PortA, 7);
-    gpio.out_dir(gpio::PortD, 2);
     
     // initialize ADC driver
     adc::ADC::ConstructStatic(NULL);
 
     // initialize throttle base voltages
-    adc::ADC& adc = adc::ADC::StaticClass();
-    vcu.input.THROTTLE_1_BASE = adc.read(ADC0, 14);
-    vcu.input.THROTTLE_2_BASE = adc.read(ADC0, 15);
+    //adc::ADC& adc = adc::ADC::StaticClass();
+    //vcu.input.THROTTLE_1_BASE = adc.read(ADC0, 14);
+    //vcu.input.THROTTLE_2_BASE = adc.read(ADC0, 15);
    
     // initialize CAN driver
     can::CANlight::ConstructStatic(&config);
@@ -376,7 +381,6 @@ void input_map() {
     vcu.input.BSPD_OK = gpio.read(gpio::PortC, 8);
     vcu.input.CURRENT_SENSE = adc.read(ADC0, 6);
     vcu.input.SUPPLY_VOLTAGE = adc.read(ADC1, 2);
-    vcu.output.SUPPLY_OK = vcu.input.SUPPLY_VOLTAGE > SUPPLY_THRESHOLD ? 1 : 0;
 
     if((timer % 10) == 0) {
         vcu.input.MC_EN = gpio.read(gpio::PortE, 6);
@@ -413,8 +417,6 @@ void output_map() {
     vcu.output.REDUNDANT_2 ? gpio.set(gpio::PortA, 6) : gpio.clear(gpio::PortA, 6);
     vcu.output.FAN_EN ? gpio.clear(gpio::PortD, 0) : gpio.set(gpio::PortD, 0);
     vcu.output.SUPPLY_OK ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
-    //vcu.output.GENERAL_PURPOSE_1 ? gpio.set(gpio::PortA, 7) : gpio.clear(gpio::PortA, 7);
-    //vcu.output.GENERAL_PURPOSE_2 ? gpio.set(gpio::PortD, 2) : gpio.clear(gpio::PortD, 2);
     
     pwm_set(vcu.output.FAN_PWM);
     mc_torque_request(vcu.output.MC_TORQUE);
