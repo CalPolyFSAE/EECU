@@ -421,13 +421,14 @@ void output_map() {
     pwm_set(vcu.output.FAN_PWM);
     mc_torque_request(vcu.output.MC_TORQUE);
     
+    update_dashboard();
+    log_safety();
+    log_precharge();
+    log_driver();
+    log_speed();
+    log_status();
+
     if((timer % 10) == 0) {
-        update_dashboard();
-        log_safety();
-        log_precharge();
-        log_driver();
-        log_speed();
-        log_status();
         timer = 0;
     } else {
         timer++;
