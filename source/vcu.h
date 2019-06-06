@@ -32,7 +32,7 @@
 #define CA                      VOLTS(2.80)
 #define BFA                     VOLTS(0.55)
 #define BRA                     VOLTS(0.55)
-#define BRAKE_MIN               VOLTS(0.20)
+#define BRAKE_MIN               VOLTS(0.10)
 #define BRAKE_MAX               VOLTS(4.50)
 #define THROTTLE_1_MIN          VOLTS(2.64)
 #define THROTTLE_1_MAX          VOLTS(1.03)
