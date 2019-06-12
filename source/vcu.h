@@ -32,21 +32,21 @@
 #define CA                      VOLTS(2.80)
 #define BFA                     VOLTS(0.55)
 #define BRA                     VOLTS(0.55)
-#define BRAKE_MIN               VOLTS(0.10)
+#define BRAKE_MIN               VOLTS(0.01)
 #define BRAKE_MAX               VOLTS(4.50)
-#define THROTTLE_1_MIN          VOLTS(2.64)
-#define THROTTLE_1_MAX          VOLTS(1.03)
-#define THROTTLE_2_MIN          VOLTS(2.08)
-#define THROTTLE_2_MAX          VOLTS(3.79)
+#define THROTTLE_1_MIN          (2255.0) //VOLTS(2.64)
+#define THROTTLE_1_MAX          (870.0) //VOLTS(1.03)
+#define THROTTLE_2_MIN          (1623.0) //VOLTS(2.08)
+#define THROTTLE_2_MAX          (3094.0) //VOLTS(3.79)
 #define SUPPLY_THRESHOLD        VOLTS(3.66)
 
 #define DEFAULT_POWER_LIMIT     KILOWATTS(60)
 
 #define TORQUE_DIS              NEWTONMETERS(-1)
 #define TORQUE_MIN              NEWTONMETERS(0)
-#define TORQUE_MAX              NEWTONMETERS(20)
+#define TORQUE_MAX              NEWTONMETERS(40)
 
-#define TEMPERATURE_LIMIT       CELSIUS(40)
+#define TEMPERATURE_LIMIT       CELSIUS(45)
 
 #define THROTTLE_LOW_LIMIT      PERCENT(5)
 #define THROTTLE_HIGH_LIMIT     PERCENT(25)
@@ -78,7 +78,9 @@ typedef struct {
     int16_t MC_VOLTAGE;         // CAN 1
     int16_t MC_SPEED;           // CAN 1
     int32_t THROTTLE_1;         // ADC 0.14
+    int32_t THROTTLE_1_RAW;
     int32_t THROTTLE_2;         // ADC 0.15
+    int32_t THROTTLE_2_RAW;
     //int32_t THROTTLE_1_BASE;    // ADC 0.14
     //int32_t THROTTLE_2_BASE;    // ADC 0.15
     uint8_t POWER_LIMIT;        // CAN 0

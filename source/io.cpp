@@ -389,6 +389,8 @@ void input_map() {
         //vcu.input.THROTTLE_2 = adc.read(ADC0, 15);
         //vcu.input.THROTTLE_1 =  - ((((int32_t)adc.read(ADC0, 14) - vcu.input.THROTTLE_1_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL));
         //vcu.input.THROTTLE_2 = (((int32_t)adc.read(ADC0, 15) - vcu.input.THROTTLE_2_BASE) * 100 ) / (THROTTLE_FULLSCALE * THROTTLE_TRAVEL);
+        vcu.input.THROTTLE_1_RAW = adc.read(ADC0, 14);
+        vcu.input.THROTTLE_2_RAW = adc.read(ADC0, 15);
         vcu.input.THROTTLE_1 = ((adc.read(ADC0, 14) - THROTTLE_1_MIN) * 100) / (THROTTLE_1_MAX - THROTTLE_1_MIN);
         vcu.input.THROTTLE_2 = ((adc.read(ADC0, 15) - THROTTLE_2_MIN) * 100) / (THROTTLE_2_MAX - THROTTLE_2_MIN);
         vcu.input.BRAKE_FRONT = adc.read(ADC0, 7);
