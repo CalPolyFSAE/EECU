@@ -1,0 +1,20 @@
+OpenDocument="io.h", FilePath="/home/gray/formula/git/VCU/source/io.h", Line=0
+OpenDocument="io.cpp", FilePath="/home/gray/formula/git/VCU/build/source/io.cpp", Line=264
+OpenDocument="vcu.cpp", FilePath="/home/gray/formula/git/VCU/source/vcu.cpp", Line=240
+OpenDocument="main.cpp", FilePath="/home/gray/formula/git/VCU/build/source/main.cpp", Line=0
+OpenDocument="startup_MKE18F16.S", FilePath="/home/gray/formula/git/MKELibrary/build/CMSIS/startup_MKE18F16.S", Line=319
+OpenToolbar="Debug", Floating=0, x=0, y=0
+OpenWindow="Registers 1", DockArea=RIGHT, x=0, y=0, w=456, h=303, FilterBarShown=0, FilteredItems=[]
+OpenWindow="Disassembly", DockArea=LEFT, x=0, y=0, w=346, h=366, FilterBarShown=0, ExecCountersShown=0
+OpenWindow="Source", x=0, y=0, w=0, h=0, FilterBarShown=0, ExecCountersShown=0
+OpenWindow="Break & Tracepoints", DockArea=LEFT, x=0, y=1, w=346, h=346, FilterBarShown=0
+OpenWindow="Memory 1", DockArea=BOTTOM, x=1, y=0, w=965, h=244, FilterBarShown=0, EditorAddress=0x0
+OpenWindow="Watched Data", DockArea=RIGHT, x=0, y=1, w=456, h=409, FilterBarShown=0
+OpenWindow="Console", DockArea=BOTTOM, x=0, y=0, w=949, h=244, FilterBarShown=0
+TableHeader="Watched Data", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh";"Access"], ColWidths=[134;221;96;56;63]
+TableHeader="Break & Tracepoints", SortCol="Location", SortOrder="ASCENDING", VisibleCols=["";"Type";"Location";"Extras"], ColWidths=[55;60;91;140]
+TableHeader="tableWidgetSamples", SortCol="Index", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Channel 0"], ColWidths=[84;119;126]
+TableHeader="Registers 1", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Description"], ColWidths=[123;132;259]
+WatchedExpression="vcu", RefreshRate=5
+WatchedExpression="VCU::motor_loop::state", RefreshRate=5
+WatchedExpression="VCU::shutdown_loop::state", RefreshRate=5

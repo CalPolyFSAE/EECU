@@ -5,6 +5,8 @@
 #include "vcu.h"
 #include "mc.h"
 #include "io.h"
+#include "canlight.h"
+using namespace BSP;
 
 VCU vcu;
 
@@ -12,6 +14,11 @@ int main() {
     // initialize board hardware
     BOARD_InitBootClocks();
     BOARD_InitBootPins();
+
+    uint32_t time = 0;
+    can::CANlight::frame ftime;
+    ftime.id = 0x10000;
+    ftime.ext = 1;
 
     // initialize drivers
     init_io();
@@ -21,6 +28,15 @@ int main() {
 
     while(true) {
         if(vcu.flag) {
+
+            ftime.data[0] = time & 0xff;
+            ftime.data[1] = (time>>8)&0xff;
+            ftime.data[2] = (time>>16)&0xff;
+            ftime.data[3] = (time>>24)&0xff;
+            can::CANlight::StaticClass().tx(0, ftime);
+            time++;
+
+
             // read inputs
             input_map();
 

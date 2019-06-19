@@ -1,7 +1,5 @@
 # VCU
 
-## [Requirements](https://github.com/CalPolyFSAE/MKELibrary/wiki/Requirements---VCU-(Vehicle-Control-Unit))
-
 ## Parameters
 `BYPASS_DRIVER` - allows motor control via UART
 

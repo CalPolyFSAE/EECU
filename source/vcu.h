@@ -44,9 +44,9 @@
 
 #define TORQUE_DIS              NEWTONMETERS(-1)
 #define TORQUE_MIN              NEWTONMETERS(0)
-#define TORQUE_MAX              NEWTONMETERS(40)
+#define TORQUE_MAX              NEWTONMETERS(70)
 
-#define TEMPERATURE_LIMIT       CELSIUS(45)
+#define TEMPERATURE_LIMIT       CELSIUS(55)
 
 #define THROTTLE_LOW_LIMIT      PERCENT(5)
 #define THROTTLE_HIGH_LIMIT     PERCENT(25)
@@ -89,6 +89,7 @@ typedef struct {
     uint8_t TS_RDY;             // GPIO E2
     uint8_t TS_LIVE;            // GPIO B7
     uint8_t CHARGER_CONNECTED;  // CAN 0
+    uint8_t MC_CONNECTED; // CAN 1
     int16_t BMS_VOLTAGE;        // CAN 0
     int16_t BMS_TEMPERATURE;    // CAN 0
     uint8_t BMS_STATE;          // CAN 0

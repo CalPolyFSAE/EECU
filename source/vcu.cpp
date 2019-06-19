@@ -10,14 +10,16 @@ extern uint8_t userInput;
 static uint8_t fan_curve(int16_t temperature) {
     uint8_t power;
 
+    return 10;
+
     if(temperature > (TEMPERATURE_LIMIT * 0.8)) {
-        power = 50;
+        power = 15;
     } else if(temperature > (TEMPERATURE_LIMIT * 0.6)) {
-        power = 35;
+        power = 15;
     } else if(temperature > (TEMPERATURE_LIMIT * 0.4)) {
-        power = 25;
-    } else if(temperature > (TEMPERATURE_LIMIT * 0.2)) {
         power = 10;
+    } else if(temperature > (TEMPERATURE_LIMIT * 0.2)) {
+        power = 5;
     } else {
         power = 0;
     }
@@ -216,7 +218,7 @@ void VCU::motor_loop() {
                    || (output.AIR_NEG == DIGITAL_LOW) 
                    || ((THROTTLE_AVG > THROTTLE_HIGH_LIMIT) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
                    || !brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)
-                   || !throttles_valid(input.THROTTLE_1, input.THROTTLE_2)) {
+                   /*|| !throttles_valid(input.THROTTLE_1, input.THROTTLE_2)*/) {
 #endif                    
                     state = STATE_STANDBY;
                 }
@@ -264,13 +266,14 @@ void VCU::shutdown_loop() {
             output.PRECHARGE = DIGITAL_LOW;
             output.DISCHARGE = DIGITAL_LOW;
             output.FAN_EN = DIGITAL_LOW;
-            output.FAN_PWM = PWM_MIN;
+            output.FAN_PWM = 50;
 
             if((input.TS_READY_SENSE == DIGITAL_LOW)
                && (output.PRECHARGE_FAILED == DIGITAL_HIGH)) {
                 output.PRECHARGE_FAILED = DIGITAL_LOW;
             } else if((input.TS_READY_SENSE == DIGITAL_HIGH)
-                      && (output.PRECHARGE_FAILED == DIGITAL_LOW)) {
+                      && (output.PRECHARGE_FAILED == DIGITAL_LOW)
+                      && (input.MC_CONNECTED || input.CHARGER_CONNECTED)) {
                 state = STATE_PRECHARGE;
                 timer = 0;
             }
@@ -291,7 +294,8 @@ void VCU::shutdown_loop() {
                || (input.TS_READY_SENSE == DIGITAL_LOW)) {
                 output.PRECHARGE_FAILED = DIGITAL_HIGH;
                 state = STATE_AIR_OFF;
-            } else if((((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE > ((input.BMS_VOLTAGE * BATTERY_LIMIT) / 100))) || input.CHARGER_CONNECTED) 
+            } else if((((timer > ALLOWED_PRECHARGE_TIME) && (input.MC_VOLTAGE > ((input.BMS_VOLTAGE * BATTERY_LIMIT) / 100))) 
+                        || ((timer > ALLOWED_PRECHARGE_TIME) && (input.CHARGER_CONNECTED)))
                       && (input.TS_READY_SENSE == DIGITAL_HIGH)) {
                 state = STATE_AIR_ON;
             } else {
@@ -333,7 +337,8 @@ void VCU::shutdown_loop() {
             output.FAN_EN = DIGITAL_LOW;
             output.FAN_PWM = PWM_MIN;
 
-            if(input.TS_READY_SENSE == DIGITAL_LOW) {
+            if((input.TS_READY_SENSE == DIGITAL_LOW)
+                    || (!input.CHARGER_CONNECTED)) {
                 state = STATE_AIR_OFF;
             }
 
@@ -347,8 +352,8 @@ void VCU::shutdown_loop() {
                 output.DCDC_DISABLE = DIGITAL_HIGH;
                 output.PRECHARGE = DIGITAL_LOW;
                 output.DISCHARGE = DIGITAL_HIGH;
-                output.FAN_EN = (output.FAN_PWM > PWM_MIN) ? DIGITAL_HIGH : DIGITAL_LOW;
-                output.FAN_PWM = fan_curve(input.BMS_TEMPERATURE);
+                output.FAN_EN = DIGITAL_HIGH;
+                //output.FAN_PWM = fan_curve(input.BMS_TEMPERATURE);
             } else {
                 output.AIR_POS = DIGITAL_HIGH;
                 output.AIR_NEG = DIGITAL_HIGH;
@@ -376,11 +381,12 @@ void VCU::shutdown_loop() {
 
 // VCU redundancy loop
 void VCU::redundancy_loop() {
-    static uint32_t timer = 0;
-    static uint8_t CHARGER_CONNECTED = 0;
     static uint8_t BSPD_OK;
+
+    if(input.CHARGER_CONNECTED) input.CHARGER_CONNECTED--;
+    if(input.MC_CONNECTED) input.MC_CONNECTED--;
     
-    if(timer > CHARGER_CONNECTED_TIME) {
+    /*if(timer > CHARGER_CONNECTED_TIME) {
         if(input.CHARGER_CONNECTED == CHARGER_CONNECTED) {
             input.CHARGER_CONNECTED = 0;
         }
@@ -389,7 +395,7 @@ void VCU::redundancy_loop() {
         timer = 0;
     } else {
         timer++;
-    }
+    }*/
 
     if(input.SUPPLY_VOLTAGE > SUPPLY_THRESHOLD) {
         output.SUPPLY_OK = DIGITAL_HIGH;

@@ -88,7 +88,7 @@ static void gen_can_callback() {
             break;
 
         case CHARGER_ID:
-            vcu.input.CHARGER_CONNECTED = (vcu.input.CHARGER_CONNECTED % 255) + 1;
+            vcu.input.CHARGER_CONNECTED = 255;
             break;
 
         default:
@@ -98,6 +98,7 @@ static void gen_can_callback() {
 
 // callback to process messages on the motor controller CAN bus
 static void mc_can_callback() {
+    vcu.input.MC_CONNECTED = 255;
     mc_receive_broadcast_message();
 }
 
