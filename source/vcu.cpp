@@ -95,7 +95,7 @@ static bool throttles_valid(int8_t throttle_1, int8_t throttle_2) {
 #ifdef BYPASS_THROTTLES
     return(true);
 #else
-    if(((throttle_1 - throttle_2) < 10) && ((throttle_1 - throttle_2) > -10)) {
+    if(((throttle_1 - throttle_2) < 25) && ((throttle_1 - throttle_2) > - 25)) {
         return(true);
     } else {
         return(false);
@@ -218,7 +218,7 @@ void VCU::motor_loop() {
                    || (output.AIR_NEG == DIGITAL_LOW) 
                    || ((THROTTLE_AVG > THROTTLE_HIGH_LIMIT) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
                    || !brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)
-                   /*|| !throttles_valid(input.THROTTLE_1, input.THROTTLE_2)*/) {
+                   || !throttles_valid(input.THROTTLE_1, input.THROTTLE_2)) {
 #endif                    
                     state = STATE_STANDBY;
                 }
@@ -272,8 +272,8 @@ void VCU::shutdown_loop() {
                && (output.PRECHARGE_FAILED == DIGITAL_HIGH)) {
                 output.PRECHARGE_FAILED = DIGITAL_LOW;
             } else if((input.TS_READY_SENSE == DIGITAL_HIGH)
-                      && (output.PRECHARGE_FAILED == DIGITAL_LOW)
-                      && (input.MC_CONNECTED || input.CHARGER_CONNECTED)) {
+                      && (output.PRECHARGE_FAILED == DIGITAL_LOW)){
+                      //&& (input.MC_CONNECTED || input.CHARGER_CONNECTED)) {
                 state = STATE_PRECHARGE;
                 timer = 0;
             }
@@ -383,7 +383,6 @@ void VCU::shutdown_loop() {
 void VCU::redundancy_loop() {
     static uint8_t BSPD_OK;
 
-    if(input.CHARGER_CONNECTED) input.CHARGER_CONNECTED--;
     if(input.MC_CONNECTED) input.MC_CONNECTED--;
     
     /*if(timer > CHARGER_CONNECTED_TIME) {
@@ -403,6 +402,7 @@ void VCU::redundancy_loop() {
         output.SUPPLY_OK = DIGITAL_LOW;
     }
 
+    /*
     if(!((input.CURRENT_SENSE > CA) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
        && brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)) {
         BSPD_OK = DIGITAL_HIGH;
@@ -421,6 +421,7 @@ void VCU::redundancy_loop() {
         output.REDUNDANT_1 = DIGITAL_LOW;
 #endif
     }
+    */
 
     output.REDUNDANT_2 = DIGITAL_HIGH;
 }
