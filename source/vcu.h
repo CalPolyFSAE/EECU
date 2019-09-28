@@ -44,7 +44,7 @@
 
 #define TORQUE_DIS              NEWTONMETERS(-1)
 #define TORQUE_MIN              NEWTONMETERS(0)
-#define TORQUE_MAX              NEWTONMETERS(70)
+#define TORQUE_MAX              NEWTONMETERS(30)
 
 #define TEMPERATURE_LIMIT       CELSIUS(55)
 

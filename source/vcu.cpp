@@ -79,6 +79,7 @@ static bool brakes_active(uint32_t front, uint32_t rear) {
 
 // checks if brakes are valid
 static bool brakes_valid(uint32_t front, uint32_t rear) {
+    return(true);
 #ifdef BYPASS_BRAKES
     return(true);
 #else
@@ -92,6 +93,7 @@ static bool brakes_valid(uint32_t front, uint32_t rear) {
 
 // checks if throttles are valid
 static bool throttles_valid(int8_t throttle_1, int8_t throttle_2) {
+    return(true);
 #ifdef BYPASS_THROTTLES
     return(true);
 #else
@@ -216,7 +218,7 @@ void VCU::motor_loop() {
                    || input.MC_RUN_FAULT 
                    || (output.AIR_POS == DIGITAL_LOW) 
                    || (output.AIR_NEG == DIGITAL_LOW) 
-                   || ((THROTTLE_AVG > THROTTLE_HIGH_LIMIT) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
+                //    || ((THROTTLE_AVG > THROTTLE_HIGH_LIMIT) && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR)) 
                    || !brakes_valid(input.BRAKE_FRONT, input.BRAKE_REAR)
                    || !throttles_valid(input.THROTTLE_1, input.THROTTLE_2)) {
 #endif                    

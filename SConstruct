@@ -1,7 +1,7 @@
 import os
 
 # Toolchain
-GNU_PATH = '/home/gray/embedded/gcc-arm-none-eabi/bin/'
+GNU_PATH = '~/gray/home/embedded/gcc-arm-none-eabi/bin/'
 
 # Board support package
 BSP_PATH = '../MKELibrary/'
