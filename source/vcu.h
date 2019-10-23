@@ -30,21 +30,21 @@
 #define CHARGER_CONNECTED_TIME  SECONDS(1)
 
 #define CA                      VOLTS(2.80)
-#define BFA                     VOLTS(0.55)
-#define BRA                     VOLTS(0.55)
+#define BFA                     (500.0)//VOLTS(0.55)
+#define BRA                     (500.0)//VOLTS(0.55)
 #define BRAKE_MIN               VOLTS(0.01)
 #define BRAKE_MAX               VOLTS(4.50)
-#define THROTTLE_1_MIN          (2148.0) //VOLTS(2.64)
-#define THROTTLE_1_MAX          (813.0) //VOLTS(1.03)
-#define THROTTLE_2_MIN          (1550.0) //VOLTS(2.08)
-#define THROTTLE_2_MAX          (2997.0) //VOLTS(3.79)
+#define THROTTLE_1_MIN          (2046.0) //VOLTS(2.64)
+#define THROTTLE_1_MAX          (806.0) //VOLTS(1.03)
+#define THROTTLE_2_MIN          (1486.0) //VOLTS(2.08)
+#define THROTTLE_2_MAX          (2865.0) //VOLTS(3.79)
 #define SUPPLY_THRESHOLD        VOLTS(3.66)
 
 #define DEFAULT_POWER_LIMIT     KILOWATTS(60)
 
 #define TORQUE_DIS              NEWTONMETERS(-1)
 #define TORQUE_MIN              NEWTONMETERS(0)
-#define TORQUE_MAX              NEWTONMETERS(30)
+#define TORQUE_MAX              NEWTONMETERS(60)
 
 #define TEMPERATURE_LIMIT       CELSIUS(55)
 

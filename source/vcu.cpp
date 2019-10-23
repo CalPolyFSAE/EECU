@@ -174,7 +174,7 @@ void VCU::motor_loop() {
 
     if(THROTTLE_AVG > 100) {
         THROTTLE_AVG = 100;
-    } else if(THROTTLE_AVG < 0) {
+    } else if(THROTTLE_AVG < 5) {
         THROTTLE_AVG = 0;
     }
     
@@ -187,8 +187,8 @@ void VCU::motor_loop() {
             if((output.AIR_POS == DIGITAL_HIGH) 
                && (output.AIR_NEG == DIGITAL_HIGH)) {
 #else
-            if((input.MC_EN == DIGITAL_HIGH) 
-               && (output.AIR_POS == DIGITAL_HIGH) 
+            if(//(input.MC_EN == DIGITAL_HIGH) 
+                (output.AIR_POS == DIGITAL_HIGH) 
                && (output.AIR_NEG == DIGITAL_HIGH) 
                && (THROTTLE_AVG < THROTTLE_LOW_LIMIT) 
                && brakes_active(input.BRAKE_FRONT, input.BRAKE_REAR) 
@@ -213,8 +213,8 @@ void VCU::motor_loop() {
                    || (output.AIR_POS == DIGITAL_LOW) 
                    || (output.AIR_NEG == DIGITAL_LOW)) {
 #else
-                if((input.MC_EN == DIGITAL_LOW) 
-                   || input.MC_POST_FAULT 
+                if(//(input.MC_EN == DIGITAL_LOW) 
+                    input.MC_POST_FAULT 
                    || input.MC_RUN_FAULT 
                    || (output.AIR_POS == DIGITAL_LOW) 
                    || (output.AIR_NEG == DIGITAL_LOW) 

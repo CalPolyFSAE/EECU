@@ -24,7 +24,7 @@
 #define TIMER_FREQUENCY 125000
 
 #define PWM_FREQUENCY 25000
-#define PWM_MIN 5
+#define PWM_MIN 40
 #define PWM_MAX 95
 
 void init_io();
