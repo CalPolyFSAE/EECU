@@ -1,6 +1,5 @@
 SConstruct
 *.dblite
-*.elf
 *.swp
 *.bak
 *.launch
