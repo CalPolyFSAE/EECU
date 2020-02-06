@@ -6,5 +6,13 @@ int main(void) {
     BOARD_InitBootPins();
     BOARD_InitBootClocks();
 
+    SysTick_Config(60000);
+
     return 0;
+}
+
+extern "C" {
+    void SysTick_Handler(void){
+
+    }
 }
