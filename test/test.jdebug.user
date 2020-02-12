@@ -1,27 +1,30 @@
-OpenDocument="pin_mux.c", FilePath="/home/gray/fsae/sw/VCU/build/board/pin_mux.c", Line=98
-OpenDocument="startup_MKE18F16.S", FilePath="/home/gray/fsae/sw/MKELibrary/build/CMSIS/startup_MKE18F16.S", Line=319
-OpenDocument="main.cpp", FilePath="/home/gray/fsae/sw/VCU/build/test/main.cpp", Line=6
+Breakpoint=main.cpp:10, State=BP_STATE_ON
+OpenDocument="cmsis_gcc.h", FilePath="/home/gray/fsae/sw/MKELibrary/CMSIS/cmsis_gcc.h", Line=0
+OpenDocument="startup_MKE18F16.S", FilePath="/home/gray/fsae/sw/MKELibrary/build/CMSIS/startup_MKE18F16.S", Line=0
+OpenDocument="main.cpp", FilePath="C:/Users/grayd/home/git/VCU/test/main.cpp", Line=2
 OpenToolbar="Debug", Floating=0, x=0, y=0
-OpenWindow="Registers 1", DockArea=RIGHT, x=0, y=0, w=553, h=188, FilterBarShown=0, FilteredItems=[]
-OpenWindow="Disassembly", DockArea=LEFT, x=0, y=0, w=501, h=370, FilterBarShown=0, ExecCountersShown=0
+OpenWindow="Registers 1", DockArea=RIGHT, x=0, y=0, w=553, h=196, FilterBarShown=0, FilteredItems=[]
+OpenWindow="Source Files", DockArea=LEFT, x=0, y=0, w=501, h=167, FilterBarShown=1
+OpenWindow="Disassembly", DockArea=LEFT, x=0, y=1, w=501, h=270, FilterBarShown=0, ExecCountersShown=0
 OpenWindow="Source", x=0, y=0, w=0, h=0, FilterBarShown=0, ExecCountersShown=0
-OpenWindow="Break & Tracepoints", DockArea=LEFT, x=0, y=1, w=501, h=362, FilterBarShown=0
-OpenWindow="Memory 1", DockArea=BOTTOM, x=1, y=0, w=966, h=244, FilterBarShown=0, EditorAddress=0x0
-OpenWindow="Watched Data", DockArea=RIGHT, x=0, y=1, w=553, h=544, FilterBarShown=0
-OpenWindow="Console", DockArea=BOTTOM, x=0, y=0, w=948, h=244, FilterBarShown=0
-TableHeader="Watched Data", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh";"Access"], ColWidths=[134;221;96;56;52]
+OpenWindow="Break & Tracepoints", DockArea=LEFT, x=0, y=2, w=501, h=267, FilterBarShown=0
+OpenWindow="Memory 1", DockArea=BOTTOM, x=1, y=0, w=968, h=244, FilterBarShown=0, EditorAddress=0x0
+OpenWindow="Watched Data", DockArea=RIGHT, x=0, y=1, w=553, h=509, FilterBarShown=0
+OpenWindow="Console", DockArea=BOTTOM, x=0, y=0, w=951, h=244, FilterBarShown=0
+TableHeader="Watched Data", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh";"Access"], ColWidths=[134;221;96;56;45]
 TableHeader="Break & Tracepoints", SortCol="Location", SortOrder="ASCENDING", VisibleCols=["";"Type";"Location";"Extras"], ColWidths=[55;60;91;295]
-TableHeader="tableWidgetSamples", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Channel 0"], ColWidths=[84;119;126]
-TableHeader="Registers 1", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Description"], ColWidths=[123;132;282]
-WatchedExpression="WheelSpeed1", RefreshRate=5
-WatchedExpression="WheelSpeed2", RefreshRate=5
-WatchedExpression="WheelSpeed3", RefreshRate=5
-WatchedExpression="WheelSpeed4", RefreshRate=5
-WatchedExpression="BSPDOK", RefreshRate=5
-WatchedExpression="IMDOK", RefreshRate=5
-WatchedExpression="BMSOK", RefreshRate=5
-WatchedExpression="LatchIn", RefreshRate=5
-WatchedExpression="LatchOut", RefreshRate=5
-WatchedExpression="TSReady", RefreshRate=5
-WatchedExpression="main.cpp::cb0::f", RefreshRate=5
+TableHeader="tableWidgetSamples", SortCol="Index", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Channel 0"], ColWidths=[84;119;126]
+TableHeader="Registers 1", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Description"], ColWidths=[123;132;281]
+TableHeader="Source Files", SortCol="Path", SortOrder="ASCENDING", VisibleCols=["File";"Status";"Size";"#Insts";"Path"], ColWidths=[147;56;44;57;260]
+WatchedExpression="WheelSpeed1"
+WatchedExpression="WheelSpeed2"
+WatchedExpression="WheelSpeed3"
+WatchedExpression="WheelSpeed4"
+WatchedExpression="BSPDOK"
+WatchedExpression="IMDOK"
+WatchedExpression="BMSOK"
+WatchedExpression="LatchIn"
+WatchedExpression="LatchOut"
+WatchedExpression="TSReady"
+WatchedExpression="main.cpp::cb0::f"
 WatchedExpression="main.cpp::cb1::f", RefreshRate=5

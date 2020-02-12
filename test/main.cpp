@@ -8,10 +8,12 @@
 using namespace BSP;
 
 void cb0(void){
-	static volatile can::CANlight::frame f = can::CANlight::StaticClass().readrx(0);
+	static can::CANlight::frame f;
+	f = can::CANlight::StaticClass().readrx(0);
 }
 void cb1(void){
-	static volatile can::CANlight::frame f = can::CANlight::StaticClass().readrx(1);
+	static can::CANlight::frame f;
+	f = can::CANlight::StaticClass().readrx(1);
 }
 
 can::CANlight::frame f0, f1;
@@ -30,7 +32,7 @@ int main(void) {
 	can.init(1, &cx);
 
     f0.id = 10;
-    f0.id = 20;
+    f1.id = 20;
 
     gpio::GPIO::clear(gpio::PortE, 3); // MCU_Relay
     gpio::GPIO::clear(gpio::PortB, 6); // Buzzer_Switch
@@ -83,8 +85,8 @@ extern "C" {
             gpio::GPIO::toggle(gpio::PortB, 2); // LED
             gpio::GPIO::toggle(gpio::PortB, 3); // LED
 
-            //can::CANlight::StaticClass().tx(0, f0);
-            //can::CANlight::StaticClass().tx(1, f1);
+            can::CANlight::StaticClass().tx(0, f0);
+            can::CANlight::StaticClass().tx(1, f1);
 
         }
     }
