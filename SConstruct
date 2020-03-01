@@ -11,7 +11,7 @@ compileTarget = 'main'
 # Create Communal build directory to store all the .o's
 VariantDir('build/board', 'board')
 VariantDir('build/source', 'source')
-VariantDir('build/test', 'test')
+VariantDir('build/rtos', 'rtos')
 
 env = Environment(ENV = os.environ)
 
@@ -45,6 +45,28 @@ env['CXXFLAGS'] = '-O0 -g -DDEBUG -Wall \
         -fno-rtti -fno-exceptions -mcpu=cortex-m4 \
         -mfloat-abi=hard -mfpu=fpv4-sp-d16 -MMD -MP \
         -DCPU_MKE18F512VLH16'
+
+includes = [
+    'source',
+    'board',
+    BSP_PATH+'CMSIS',
+    BSP_PATH+'drivers',
+    BSP_PATH+'utilities',
+    BSP_PATH+'lib',
+    BSP_PATH+'System',
+    BSP_PATH
+]
+
+
+rtos_includes = [
+    'rtos',
+    'rtos/include',
+    'rtos/portable/ARM_CM4F'
+    ]
+
+env.Append(CPPPATH = rtos_includes)
+env.Append(CPPPATH = includes)
+
 env['LINKFLAGS'] = '-O0 -g -DDEBUG -Wall \
     -fno-common -ffunction-sections -fdata-sections \
     -ffreestanding -fno-builtin -mthumb -mapcs \
@@ -59,32 +81,18 @@ env['LINKFLAGS'] = '-O0 -g -DDEBUG -Wall \
     -mcpu=cortex-m4 -mfloat-abi=hard \
     -mfpu=fpv4-sp-d16 -TMKE18F512xxx16_flash.ld -static'
 
-includes = [
-    'source',
-    'board',
-    BSP_PATH+'CMSIS',
-    BSP_PATH+'drivers',
-    BSP_PATH+'utilities',
-    BSP_PATH+'lib',
-    BSP_PATH+'System',
-    BSP_PATH
-]
-
-env.Append(CPPPATH = includes)
-
 src = \
     Glob('build/board/*.c'), \
     Glob('build/source/*.cpp'), \
-    Glob('build/source/*.c')
-
-testsrc = \
-    Glob('build/board/*.c'), \
-    Glob('build/test/*.cpp'), \
-
+    Glob('build/source/*.c'),
     
+rtos_src = \
+    Glob('build/rtos/*.c'), \
+    'build/rtos/portable/ARM_CM4F/port.c', \
+    'build/rtos/portable/MemMang/heap_4.c'
+
 # Run the compile command and create .elf
-env.Program(compileTarget, source=src, LIBS=['bsp'], LIBPATH=[BSP_PATH])
-env.Program('test', source=testsrc, LIBS=['bsp'], LIBPATH=[BSP_PATH])
+env.Program(compileTarget, source=src+rtos_src, LIBS=['bsp'], LIBPATH=[BSP_PATH])
 
 # Create .lst from .elf
 #env.Command(compileTarget+".lst", compileTarget+".elf", \
